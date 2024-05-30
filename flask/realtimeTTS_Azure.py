@@ -1,9 +1,8 @@
 from RealtimeTTS import TextToAudioStream, AzureEngine
-import os, openai # pip install openai  
 import time
 from openai import OpenAI
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+# only English
 engine = AzureEngine(os.environ.get("AZURE_SPEECH_KEY"), os.environ.get("AZURE_SPEECH_REGION"))
 
 api_key = ""
@@ -13,9 +12,9 @@ def generate(prompt):
     for chunk in client.chat.completions.create(
         model="gpt-4o",
         messages=[{"role": "user", "content" : prompt}],
-        stream=True):
-        
-        if (text_chunk := chunk["choices"][0]["delta"].get("content")): 
+        stream=True
+    ):
+        if (text_chunk := chunk.choices[0].delta.content): 
             yield text_chunk
 
 
@@ -36,9 +35,14 @@ stream = TextToAudioStream(engine,
                            on_text_stream_stop=text_stop, 
                            on_audio_stream_start=audio_start, 
                            on_audio_stream_stop=audio_stop,
+                           language='zh',
+                           fast_sentence_fragment=True,
+                        #    the method will prioritize speed, generating and playing sentence fragments faster. This is useful for applications where latency matters.
+                           minimum_sentence_length =3,
+                        #    Sets the minimum character length to consider a string as a sentence to be synthesized. This affects how text chunks are processed and played.
                            log_characters=True)
 
-text_stream = generate("A very short two-sentence relaxing speech.")
+text_stream = generate("Do u think people should be tolerant to the lover or non-lover")
 stream.feed(text_stream)
 stream.play_async()
 

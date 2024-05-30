@@ -13,15 +13,9 @@ class WhisperASR:
         # self.sentiment_pipeline = pipeline("sentiment-analysis")
 
     def transcribe(self, audio_file):
-        # with open(audio_file_path, "rb") as audio_file:
-        #     # model_size = 'base'  # 可选值：'base', 'small', 'medium', 'large'
-        #     response = openai.Audio.transcribe(f"whisper-1", audio_file)
-
-        # response = openai.Audio.transcriptions.create(f"whisper-1", audio_file)
-        # transcript = response['text']
         
         print("______", type(audio_file))
-
+        
         transcript = self.client.audio.transcriptions.create(
             model="whisper-1", file=audio_file.read()
         )

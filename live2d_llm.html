@@ -248,6 +248,9 @@
                       const audioBlob = new Blob(chunks, { type: 'audio/wav' });
                       chunks = [];
 
+                      sendAudioToServer(audioBlob);
+                      
+                      // Play the audio by Live2D
                       const audioUrl = URL.createObjectURL(audioBlob);
                       const model4 = PIXI.live2d.models[0];
                       talk(model4, audioUrl);
@@ -264,7 +267,7 @@
           if (mediaRecorder && mediaRecorder.state === 'recording') {
               mediaRecorder.stop();
               // 发送音频文件给接口
-              sendAudioToServer();
+              // sendAudioToServer();
           }
       });
 
@@ -289,11 +292,13 @@
           // });
       }
 
-      function sendAudioToServer() {
+      function sendAudioToServer(audioBlob) {
+        console.log("call flask___________")
         const formData = new FormData();
-        formData.append('audio', new Blob(chunks, { type: 'audio/wav' }), 'recording.wav');
+        // formData.append('audio', new Blob(chunks, { type: 'audio/wav' }), 'recording.wav');
+        formData.append('audio', audioBlob);
 
-        fetch('http://localhost:3030/process_audio', {
+        fetch('http://localhost:8080/process_audio', {
           method: 'POST',
           body: formData
         })
