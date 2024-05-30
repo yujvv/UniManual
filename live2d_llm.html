@@ -290,54 +290,70 @@
       }
 
       function sendAudioToServer() {
-          const formData = new FormData();
-          formData.append('audio', new Blob(chunks, { type: 'audio/wav' }), 'recording.wav');
+        const formData = new FormData();
+        formData.append('audio', new Blob(chunks, { type: 'audio/wav' }), 'recording.wav');
 
-          fetch('/process_audio', {
-              method: 'POST',
-              body: formData
-          })
-          .then(response => {
-              if (!response.ok) {
-                  throw new Error('Network response was not ok');
-              }
-              return response.body;
-          })
-          .then(body => {
-              const reader = body.getReader();
-              const model4 = PIXI.live2d.models[0];
+        fetch('/process_audio', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
 
-              function pump() {
-                  reader.read().then(({ done, value }) => {
-                      if (done) {
-                          console.log('Stream complete');
-                          return;
-                      }
-                      talk(model4, value);
-                      pump();
-                  }).catch(error => {
-                      console.error('Error reading stream:', error);
-                  });
+          // Check if the response is a stream
+          if (response.body === null) {
+            throw new Error('Response body is null');
+          }
+
+          const reader = response.body.getReader();
+          const audioContext = new AudioContext();
+          const arrayBuffer = [];
+
+          // Function to process the stream
+          function processStream() {
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                console.log('Stream complete');
+                const audioBuffer = audioContext.createBuffer(1, arrayBuffer.length, audioContext.sampleRate);
+                const data = audioBuffer.getChannelData(0);
+                data.set(arrayBuffer);
+                const audioSource = audioContext.createBufferSource();
+                audioSource.buffer = audioBuffer;
+                audioSource.connect(audioContext.destination);
+                audioSource.start();
+                return;
               }
-              pump();
-          })
-          .catch(error => {
-              console.error('Error processing audio:', error);
-          });
+
+              // Append the received data to the arrayBuffer
+              arrayBuffer.push(...new Uint8Array(value.buffer));
+
+              processStream();
+            }).catch(error => {
+              console.error('Error reading stream:', error);
+            });
+          }
+
+          processStream();
+        })
+        .catch(error => {
+          console.error('Error processing audio:', error);
+        });
       }
 
 
 
-      if (mediaRecorder) {
-          mediaRecorder.addEventListener('stop', () => {
-              const audioBlob = new Blob(chunks, { type: 'audio/wav' });
-              chunks = [];
+      // if (mediaRecorder) {
+      //     mediaRecorder.addEventListener('stop', () => {
+      //         const audioBlob = new Blob(chunks, { type: 'audio/wav' });
+      //         chunks = [];
 
-              const audioUrl = URL.createObjectURL(audioBlob);
-              const audio = new Audio(audioUrl);
-              audio.play();
-          });
-      }
+      //         const audioUrl = URL.createObjectURL(audioBlob);
+      //         const audio = new Audio(audioUrl);
+      //         audio.play();
+      //     });
+      // }
 
 
 
