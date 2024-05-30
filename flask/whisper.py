@@ -1,4 +1,4 @@
-import openai
+from openai import OpenAI
 # from langdetect import detect
 import langid
 # from transformers import pipeline
@@ -8,15 +8,24 @@ import os
 class WhisperASR:
     def __init__(self, api_key):
         self.api_key = api_key
-        openai.api_key = self.api_key
+        # openai.api_key = self.api_key
+        self.client = OpenAI(api_key=api_key)
         # self.sentiment_pipeline = pipeline("sentiment-analysis")
 
-    def transcribe(self, audio_file_path):
-        with open(audio_file_path, "rb") as audio_file:
-            # model_size = 'base'  # 可选值：'base', 'small', 'medium', 'large'
-            response = openai.Audio.transcribe(f"whisper-1", audio_file)
+    def transcribe(self, audio_file):
+        # with open(audio_file_path, "rb") as audio_file:
+        #     # model_size = 'base'  # 可选值：'base', 'small', 'medium', 'large'
+        #     response = openai.Audio.transcribe(f"whisper-1", audio_file)
 
-        transcript = response['text']
+        # response = openai.Audio.transcriptions.create(f"whisper-1", audio_file)
+        # transcript = response['text']
+        
+        print("______", type(audio_file))
+
+        transcript = self.client.audio.transcriptions.create(
+            model="whisper-1", file=audio_file.read()
+        )
+
         # language = detect(transcript)
         language = self.detect_language(transcript)
         sentiment = self.analyze_sentiment(transcript)
