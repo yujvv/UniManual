@@ -47,14 +47,14 @@ class WhisperASR:
             sentiment = 'neutral'
         return sentiment
 
-# 使用示例
-if __name__ == "__main__":
-    api_key = ""
-    asr = WhisperASR(api_key)
 
-    audio_file_path = "Keira.wav"  # 请替换为你的音频文件路径
-    result = asr.transcribe(audio_file_path)
+# if __name__ == "__main__":
+#     api_key = ""
+#     asr = WhisperASR(api_key)
+
+#     audio_file_path = "Keira.wav"  # 请替换为你的音频文件路径
+#     result = asr.transcribe(audio_file_path)
     
-    print("Transcript:", result["transcript"])
-    print("Language:", result["language"])
-    print("Sentiment:", result["sentiment"])
+#     print("Transcript:", result["transcript"])
+#     print("Language:", result["language"])
+#     print("Sentiment:", result["sentiment"])
