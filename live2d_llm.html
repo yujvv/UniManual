@@ -223,6 +223,20 @@
         talk(model4, "./Keira.wav");
       });
 
+      // 当按下 "q" 键时触发
+      $(document).keydown(function(event) {
+          if (event.which === 81) {
+              $("#input_audio").mousedown();
+          }
+      });
+
+      // 当释放 "q" 键时触发
+      $(document).keyup(function(event) {
+          if (event.which === 81) {
+              $("#input_audio").mouseup();
+          }
+      });
+
       let mediaRecorder;
       let chunks = [];
 
@@ -270,82 +284,104 @@
               // sendAudioToServer();
           }
       });
+ 
 
-            
-      function sendAudioToServer() {
+      function sendAudioToServer(audioBlob) {
           console.log("调用Flask接口处理音频")
-          // const formData = new FormData();
-          // formData.append('audio', new Blob(chunks, { type: 'audio/wav' }), 'recording.wav');
+          const formData = new FormData();
+          formData.append('audio', audioBlob);
 
-          // fetch('http://flask_server_ip:flask_server_port/process_audio', {
-          //     method: 'POST',
-          //     body: formData
-          // })
+          fetch('http://localhost:8080/process_audio', {
+              method: 'POST',
+              body: formData
+          })
+          .then(response => {
+              const reader = response.body.getReader();
+              const audioChunks = [];
+
+              // 读取数据流
+              const readChunk = async () => {
+                  const { done, value } = await reader.read();
+                  if (!done) {
+                      audioChunks.push(value);
+                      await readChunk();
+                  } else {
+                      const processedAudioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                      const processedAudioUrl = URL.createObjectURL(processedAudioBlob);
+                      const model4 = PIXI.live2d.models[0];
+                      talk(model4, processedAudioUrl);
+                  }
+              };
+              readChunk();
+          })
+          .finally(() => {
+              URL.revokeObjectURL(processedAudioUrl);
+          })
           // .then(response => response.blob())
           // .then(processedAudioBlob => {
           //     const processedAudioUrl = URL.createObjectURL(processedAudioBlob);
           //     const model4 = PIXI.live2d.models[0];
           //     talk(model4, processedAudioUrl);
           // })
-          // .catch(error => {
-          //     console.error('Error processing audio:', error);
-          // });
+          .catch(error => {
+              console.error('Error processing audio:', error);
+          });
       }
 
-      function sendAudioToServer(audioBlob) {
-        console.log("call flask___________")
-        const formData = new FormData();
-        // formData.append('audio', new Blob(chunks, { type: 'audio/wav' }), 'recording.wav');
-        formData.append('audio', audioBlob);
+      // function sendAudioToServer(audioBlob) {
+      //   console.log("call flask___________")
+      //   const formData = new FormData();
+      //   // formData.append('audio', new Blob(chunks, { type: 'audio/wav' }), 'recording.wav');
+      //   formData.append('audio', audioBlob);
 
-        fetch('http://localhost:8080/process_audio', {
-          method: 'POST',
-          body: formData
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
+      //   fetch('http://localhost:8080/process_audio', {
+      //     method: 'POST',
+      //     body: formData
+      //   })
+      //   .then(response => {
+      //     if (!response.ok) {
+      //       throw new Error('Network response was not ok');
+      //     }
 
-          // Check if the response is a stream
-          if (response.body === null) {
-            throw new Error('Response body is null');
-          }
+      //     // Check if the response is a stream
+      //     if (response.body === null) {
+      //       throw new Error('Response body is null');
+      //     }
 
-          const reader = response.body.getReader();
-          const audioContext = new AudioContext();
-          const arrayBuffer = [];
+      //     const reader = response.body.getReader();
+      //     const audioContext = new AudioContext();
+      //     const arrayBuffer = [];
 
-          // Function to process the stream
-          function processStream() {
-            reader.read().then(({ done, value }) => {
-              if (done) {
-                console.log('Stream complete');
-                const audioBuffer = audioContext.createBuffer(1, arrayBuffer.length, audioContext.sampleRate);
-                const data = audioBuffer.getChannelData(0);
-                data.set(arrayBuffer);
-                const audioSource = audioContext.createBufferSource();
-                audioSource.buffer = audioBuffer;
-                audioSource.connect(audioContext.destination);
-                audioSource.start();
-                return;
-              }
+      //     // Function to process the stream
+      //     function processStream() {
+      //       reader.read().then(({ done, value }) => {
+      //         if (done) {
+      //           console.log('Stream complete');
+      //           const audioBuffer = audioContext.createBuffer(1, arrayBuffer.length, audioContext.sampleRate);
+      //           const data = audioBuffer.getChannelData(0);
+      //           data.set(arrayBuffer);
+      //           const audioSource = audioContext.createBufferSource();
+      //           audioSource.buffer = audioBuffer;
+      //           audioSource.connect(audioContext.destination);
+      //           audioSource.start();
+      //           return;
+      //         }
 
-              // Append the received data to the arrayBuffer
-              arrayBuffer.push(...new Uint8Array(value.buffer));
+      //         // Append the received data to the arrayBuffer
+      //         arrayBuffer.push(...new Uint8Array(value.buffer));
 
-              processStream();
-            }).catch(error => {
-              console.error('Error reading stream:', error);
-            });
-          }
+      //         processStream();
+      //       }).catch(error => {
+      //         console.error('Error reading stream:', error);
+      //       });
+      //     }
 
-          processStream();
-        })
-        .catch(error => {
-          console.error('Error processing audio:', error);
-        });
-      }
+      //     processStream();
+      //   })
+      //   .catch(error => {
+      //     console.error('Error processing audio:', error);
+      //   });
+      // }
 
 
 
