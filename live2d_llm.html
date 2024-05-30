@@ -293,7 +293,7 @@
         const formData = new FormData();
         formData.append('audio', new Blob(chunks, { type: 'audio/wav' }), 'recording.wav');
 
-        fetch('/process_audio', {
+        fetch('http://localhost:3030/process_audio', {
           method: 'POST',
           body: formData
         })
