@@ -1,6 +1,7 @@
 from RealtimeTTS import TextToAudioStream, AzureEngine
 import time
 from openai import OpenAI
+import os
 
 # only English
 engine = AzureEngine(os.environ.get("AZURE_SPEECH_KEY"), os.environ.get("AZURE_SPEECH_REGION"))
