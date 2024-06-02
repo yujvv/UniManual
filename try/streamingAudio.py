@@ -133,7 +133,7 @@ def streamingTTS(text, lang):
 
     # Callback audio chunking
     def on_audio_chunk_callback(chunk):
-        # print(f"Chunk received, len: {len(chunk)}")
+        print(f"Chunk received, len: {len(chunk)}")
         yield chunk
 
     # text_stream = generate(text)

@@ -1,0 +1,554 @@
+<html>
+
+<head>
+  <script src="./js/live2dcubismcore.min.js"></script>
+  <script src="./js/live2d.min.js"></script>
+  <script src="./js/pixi.min.js"></script>
+  <script src="./js/cubism4.min.js"></script>
+  <script src="./js/jquery-3.1.1.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+
+  <style>
+    /* CSS样式 */
+    #input_audio {
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      background-color: #fff;
+      /* 默认背景色 */
+    }
+
+    #input_audio:active {
+      background-color: #ccc;
+      /* 按下时的背景色 */
+    }
+  </style>
+
+  <canvas id="canvas"></canvas>
+
+  <div id="control">
+    <button id="play">测试音频</button>
+    <br />
+    <label>数字人模型</label>
+    <select id="model_list"></select>
+    <button id="update_model">更新模型</button>
+    <br />
+    <label>眼神跟随鼠标</label>
+    <input type="radio" name="eyes" value="true" checked>
+    <label>跟随鼠标</label>
+    <input type="radio" id="option2" name="eyes" value="false">
+    <label>前方直视</label>
+    <br />
+    <label>背景控制</label>
+    <input type="radio" id="option1" name="options" value="bg_color" checked>
+    <label for="option1">背景颜色</label>
+    <input id="bg_color" type="text" style="width:100px;">
+    <br />
+    <input type="radio" id="option2" name="options" value="bg_img">
+    <label for="option2">背景图片</label>
+    <input type="file" id="imgupload" style="display:none" />
+    <button id="openImgUpload">上传图片</button>
+    <button id="update_bg">更新背景</button>
+    <br />
+
+    <!-- Circle Button for Audio Input -->
+    <button id="input_audio" style="border-radius: 50%; width: 50px; height: 50px;">🎤</button>
+    <!-- <button id="start_recording">开始录音</button>
+    <button id="stop_recording" disabled>停止录音</button> -->
+
+  </div>
+
+  <script type="text/javascript">
+
+    $('input[name="eyes"]').click(function () {
+      var radioValue = $("input[name='eyes']:checked").val();
+      setCookie("eyes", radioValue, 1024);
+      location.reload();
+    });
+
+    $('#openImgUpload').click(function () {
+      $('#imgupload').trigger('click');
+    });
+
+    $('#imgupload').on('change', function () {
+      var formData = new FormData();
+      formData.append('image', $(this)[0].files[0]);
+
+      $.ajax({
+        url: '/upload',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (data) {
+          console.log('上传成功: ', data.filename);
+          setCookie("bg_img", data.filename, 1024);
+          var radioValue = $("input[name='options']:checked").val();
+          setCookie("bg_con", radioValue, 1024);
+          location.reload();
+        }
+      });
+    });
+
+    function getCookie(name) {
+      const value = "; " + document.cookie;
+      const parts = value.split("; " + name + "=");
+      if (parts.length === 2) return parts.pop().split(";").shift();
+    }
+
+    function setCookie(name, value, days) {
+      const date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      const expires = "expires=" + date.toUTCString();
+      document.cookie = name + "=" + value + ";" + expires + ";path=/";
+    }
+
+    const selectedValue = getCookie("bg_con");
+    if (selectedValue) {
+      const radioButtons = document.getElementsByName("options");
+      radioButtons.forEach(radio => {
+        radio.checked = false;
+        if (radio.value === selectedValue) {
+          radio.checked = true;
+        }
+      });
+    }
+
+    const eyesValue = getCookie("eyes");
+    if (eyesValue) {
+      const radioButtons = document.getElementsByName("eyes");
+      radioButtons.forEach(radio => {
+        radio.checked = false;
+        if (radio.value == eyesValue) {
+          radio.checked = true;
+        }
+      });
+    }
+
+    let radioValue = $("input[name='options']:checked").val();
+    if (getCookie("bg_color") === undefined) { $("#bg_color").val("gray"); } else { $("#bg_color").val(getCookie("bg_color")); }
+    if (radioValue == "bg_color") {
+      $("#canvas").css("background-color", $("#bg_color").val());
+    } else {
+      if (getCookie("bg_img") !== undefined) {
+        let imageUrl = "./uploads/" + getCookie("bg_img");
+        $("#canvas").css("background-image", "url(" + imageUrl + ")");
+      }
+    }
+
+    let eye_bool = true;
+    if (getCookie("eyes") === undefined) { } else {
+      if (getCookie("eyes") == "false") {
+        eye_bool = false;
+      }
+    }
+
+    var cubism4Model = './models/<%=model_path%>/<%=model_path%>.model3.json';
+    var selected_model = '<%-model_path%>';
+    var model_list = '<%-model_list%>';
+    model_list = JSON.parse(model_list);
+
+    var $select = $("#model_list");
+    $select.empty();
+    $.each(model_list, function (index, value) {
+      if (value == selected_model) {
+        $select.append($("<option selected></option>").attr("value", value).text(value));
+      } else {
+        $select.append($("<option></option>").attr("value", value).text(value));
+      }
+    });
+
+    const live2d = PIXI.live2d;
+
+    (async function main() {
+      const app = new PIXI.Application({
+        view: document.getElementById("canvas"),
+        autoStart: true,
+        resizeTo: window,
+        transparent: true,
+        backgroundAlpha: 0,
+      });
+
+      var models = await Promise.all([
+        live2d.Live2DModel.from(cubism4Model, { autoInteract: eye_bool })
+      ]);
+      PIXI.live2d.models = models;
+
+      models.forEach((model) => {
+        app.stage.addChild(model);
+        const scaleX = (innerWidth) / model.width;
+        const scaleY = (innerHeight) / model.height;
+        model.scale.set(Math.min(scaleX, scaleY));
+        model.y = innerHeight * 0.1;
+        draggable(model);
+      });
+
+      const model4 = models[0];
+      model4.x = innerWidth / 2;
+
+      model4.on("hit", (hitAreas) => {
+        if (hitAreas.includes("Body")) {
+          model4.motion("Tap");
+        }
+        if (hitAreas.includes("Head")) {
+          model4.expression();
+        }
+      });
+
+      $("#update_bg").click(function () {
+        var radioValue = $("input[name='options']:checked").val();
+        setCookie("bg_con", radioValue, 1024);
+        setCookie("bg_color", $("#bg_color").val(), 1024);
+        location.reload();
+      });
+
+      $("#update_model").click(function () {
+        axios.get('/edit_config', {
+          params: { "model_path": $("#model_list").val() }
+        })
+          .then(response => {
+            console.log(response.data);
+            location.reload();
+          })
+          .catch(error => {
+            console.error(error);
+            alert(error);
+          });
+      });
+
+      $("#play").click(function () {
+        talk(model4, "./Keira.wav");
+      });
+
+      // 当按下 "q" 键时触发
+      $(document).keydown(function (event) {
+        if (event.which === 81) {
+          $("#input_audio").mousedown();
+        }
+      });
+
+      // 当释放 "q" 键时触发
+      $(document).keyup(function (event) {
+        if (event.which === 81) {
+          $("#input_audio").mouseup();
+        }
+      });
+
+      let mediaRecorder;
+      let chunks = [];
+
+      $("#input_audio").mousedown(function () {
+        $(this).addClass("pressed").removeClass("released");
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then(stream => {
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+
+            const timeout = setTimeout(() => {
+              mediaRecorder.stop();
+              stream.getTracks().forEach(track => track.stop());
+            }, 5000);
+
+            mediaRecorder.addEventListener('dataavailable', event => {
+              chunks.push(event.data);
+            });
+
+            mediaRecorder.addEventListener('stop', () => {
+              clearTimeout(timeout);
+              const audioBlob = new Blob(chunks, { type: 'audio/wav' });
+              chunks = [];
+
+              processAudio(audioBlob);
+
+              // Play the audio by Live2D
+              const audioUrl = URL.createObjectURL(audioBlob);
+              const model4 = PIXI.live2d.models[0];
+              talk(model4, audioUrl);
+            });
+          })
+          .catch(error => {
+            console.error('Error accessing microphone:', error);
+          });
+      });
+
+      $("#input_audio").mouseup(function () {
+        $(this).addClass("released").removeClass("pressed");
+
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+          // 发送音频文件给接口
+          // sendAudioToServer();
+        }
+      });
+
+
+      const processAudio = async (audioBlob) => {
+        const formData = new FormData();
+        // const audioBlob = await recorder.getAudioBlob();
+        formData.append('audio', audioBlob, 'audio.wav');
+
+        const response = await fetch('http://localhost:8080/process_audio', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const reader = response.body.getReader();
+        const audioContext = new AudioContext();
+        let sourceNode = null;
+
+        const playChunk = async () => {
+          const { value, done } = await reader.read();
+          if (done) return;
+
+          const audioBuffer = await audioContext.decodeAudioData(value.buffer);
+
+          if (!sourceNode) {
+            sourceNode = audioContext.createBufferSource();
+            sourceNode.connect(audioContext.destination);
+            sourceNode.buffer = audioBuffer;
+            sourceNode.start();
+          } else {
+            sourceNode.buffer = audioBuffer;
+          }
+
+          const audioUrl = URL.createObjectURL(new Blob([value], { type: 'audio/wav' }));
+          const model = PIXI.live2d.models[0];
+          talk(model, audioUrl);
+
+          await playChunk();
+        };
+
+        await playChunk();
+      };
+
+
+      // function sendAudioToServer(audioBlob) {
+      //     console.log("调用Flask接口处理音频");
+      //     const formData = new FormData();
+      //     formData.append('audio', audioBlob);
+      //     // fake_audio  process_audio
+      //     fetch('http://localhost:8080/fake_audio', {
+      //         method: 'POST',
+      //         body: formData
+      //     })
+      //     .then(response => {
+      //         const contentType = response.headers.get('Content-Type') || 'audio/wav';
+      //         console.log(`Received audio type: ${contentType}`);
+
+      //         const reader = response.body.getReader();
+      //         const audioChunks = [];
+      //         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      //         let offset = audioContext.currentTime;
+
+      //         // 读取数据流并播放
+      //         const readChunk = async () => {
+      //             try {
+      //                 const { done, value } = await reader.read();
+      //                 if (done) {
+      //                     console.log("Audio stream reading completed.");
+      //                     if (audioChunks.length > 0) {
+      //                         const processedAudioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+      //                         const processedAudioUrl = URL.createObjectURL(processedAudioBlob);
+      //                         const model4 = PIXI.live2d.models[0];
+      //                         talk(model4, processedAudioUrl);
+      //                         URL.revokeObjectURL(processedAudioUrl);
+      //                     }
+      //                     return;
+      //                 }
+
+      //                 audioChunks.push(value);
+      //                 const audioBlob = new Blob([value], { type: 'audio/wav' });
+      //                 const arrayBuffer = await audioBlob.arrayBuffer();
+      //                 try {
+      //                     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      //                 } catch (e) {
+      //                     console.error('Decoding error:', e.name, e.message);
+      //                     if (e instanceof TypeError) {
+      //                         console.warn('Possible incorrect buffer type');
+      //                     } else if (e.name === 'NotSupportedError') {
+      //                         console.warn('Audio format not supported');
+      //                     }
+      //                 }
+
+
+      //                 // const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+      //                 const sourceNode = audioContext.createBufferSource();
+      //                 sourceNode.buffer = audioBuffer;
+      //                 sourceNode.connect(audioContext.destination);
+      //                 sourceNode.start(offset);
+      //                 offset += audioBuffer.duration;
+
+      //                 const audioUrl = URL.createObjectURL(audioBlob);
+      //                 const model4 = PIXI.live2d.models[0];
+      //                 talk(model4, audioUrl);
+      //                 URL.revokeObjectURL(audioUrl);
+
+      //                 await readChunk();
+      //             } catch (error) {
+      //                 console.error('Error reading audio stream:', error);
+      //             }
+      //         };
+
+      //         readChunk();
+      //     })
+      //     .catch(error => {
+      //         console.error('Error processing audio:', error);
+      //     });
+      // }
+
+
+
+      // function sendAudioToServer(audioBlob) {
+      //   console.log("call flask___________")
+      //   const formData = new FormData();
+      //   // formData.append('audio', new Blob(chunks, { type: 'audio/wav' }), 'recording.wav');
+      //   formData.append('audio', audioBlob);
+
+      //   fetch('http://localhost:8080/process_audio', {
+      //     method: 'POST',
+      //     body: formData
+      //   })
+      //   .then(response => {
+      //     if (!response.ok) {
+      //       throw new Error('Network response was not ok');
+      //     }
+
+      //     // Check if the response is a stream
+      //     if (response.body === null) {
+      //       throw new Error('Response body is null');
+      //     }
+
+      //     const reader = response.body.getReader();
+      //     const audioContext = new AudioContext();
+      //     const arrayBuffer = [];
+
+      //     // Function to process the stream
+      //     function processStream() {
+      //       reader.read().then(({ done, value }) => {
+      //         if (done) {
+      //           console.log('Stream complete');
+      //           const audioBuffer = audioContext.createBuffer(1, arrayBuffer.length, audioContext.sampleRate);
+      //           const data = audioBuffer.getChannelData(0);
+      //           data.set(arrayBuffer);
+      //           const audioSource = audioContext.createBufferSource();
+      //           audioSource.buffer = audioBuffer;
+      //           audioSource.connect(audioContext.destination);
+      //           audioSource.start();
+      //           return;
+      //         }
+
+      //         // Append the received data to the arrayBuffer
+      //         arrayBuffer.push(...new Uint8Array(value.buffer));
+
+      //         processStream();
+      //       }).catch(error => {
+      //         console.error('Error reading stream:', error);
+      //       });
+      //     }
+
+      //     processStream();
+      //   })
+      //   .catch(error => {
+      //     console.error('Error processing audio:', error);
+      //   });
+      // }
+
+
+
+      // if (mediaRecorder) {
+      //     mediaRecorder.addEventListener('stop', () => {
+      //         const audioBlob = new Blob(chunks, { type: 'audio/wav' });
+      //         chunks = [];
+
+      //         const audioUrl = URL.createObjectURL(audioBlob);
+      //         const audio = new Audio(audioUrl);
+      //         audio.play();
+      //     });
+      // }
+
+
+
+      // $("#input_audio").click(function () {
+      //   navigator.mediaDevices.getUserMedia({ audio: true })
+      //     .then(stream => {
+      //       mediaRecorder = new MediaRecorder(stream);
+      //       mediaRecorder.start();
+
+      //       const timeout = setTimeout(() => {
+      //         mediaRecorder.stop();
+      //         stream.getTracks().forEach(track => track.stop());
+      //       }, 5000);
+
+      //       mediaRecorder.addEventListener('dataavailable', event => {
+      //         chunks.push(event.data);
+      //       });
+
+      //       mediaRecorder.addEventListener('stop', () => {
+      //         clearTimeout(timeout);
+      //         const audioBlob = new Blob(chunks, { type: 'audio/wav' });
+      //         chunks = [];
+
+      //         const audioUrl = URL.createObjectURL(audioBlob);
+      //         const model4 = PIXI.live2d.models[0];
+      //         talk(model4, audioUrl);
+      //       });
+      //     })
+      //     .catch(error => {
+      //       console.error('Error accessing microphone:', error);
+      //     });
+      // });
+
+    })();
+
+
+    // function talk(model, audio) {
+    //   var volume = 1;
+    //   var expression = 8;
+    //   var resetExpression = true;
+    //   var crossOrigin = "anonymous";
+
+    //   model.speak(audio, { volume: volume, expression: expression, resetExpression: resetExpression, crossOrigin: crossOrigin })
+    // }
+
+    function talk(model, audio) {
+      var audio_link = audio;
+      var volume = 1;
+      var expression = 8;
+      var resetExpression = true;
+      var crossOrigin = "anonymous";
+
+      model.speak(audio_link, { volume: volume, expression: expression, resetExpression: resetExpression, crossOrigin: crossOrigin })
+      model.speak(audio_link)
+      model.speak(audio_link, { volume: volume })
+      model.speak(audio_link, { expression: expression, resetExpression: resetExpression })
+    }
+
+    function draggable(model) {
+      model.buttonMode = true;
+      model.on("pointerdown", (e) => {
+        model.dragging = true;
+        model._pointerX = e.data.global.x - model.x;
+        model._pointerY = e.data.global.y - model.y;
+      });
+      model.on("pointermove", (e) => {
+        if (model.dragging) {
+          model.position.x = e.data.global.x - model._pointerX;
+          model.position.y = e.data.global.y - model._pointerY;
+        }
+      });
+      model.on("pointerupoutside", () => {
+        model.dragging = false;
+      });
+      model.on("pointerup", () => {
+        model.dragging = false;
+      });
+    }
+  </script>
+</body>
+
+</html>

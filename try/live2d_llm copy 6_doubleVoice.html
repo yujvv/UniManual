@@ -26,80 +26,7 @@
       background-color: #ccc;
       /* 按下时的背景色 */
     }
-
-
-    /* CSS样式 */
-    #stop_audio {
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      background-color: #fff;
-      /* 默认背景色 */
-    }
-
-    #stop_audio:active {
-      background-color: #ccc;
-      /* 按下时的背景色 */
-    }
-
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      position: absolute;
-      left: 20px;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 1;
-    }
-
-    .text-box {
-      background-color: rgba(255, 255, 255, 0.8);
-      padding: 20px;
-      border-radius: 10px;
-      font-family: 'Arial', sans-serif;
-      font-size: 18px;
-      color: #333;
-      max-width: 300px;
-      margin-bottom: 20px;
-      /* 滚动条 */
-      max-height: 200px;
-      overflow-y: auto;
-      scrollbar-width: none;
-      /* 针对Firefox */
-      -ms-overflow-style: none;
-      /* 针对IE和Edge */
-    }
-
-    .text-box::-webkit-scrollbar {
-      display: none;
-      /* 针对Chrome, Safari和Opera */
-    }
-
-    .image-box {
-      background-color: #fff;
-      padding: 10px;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .image-box img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 5px;
-      width: 270px;
-    }
   </style>
-
-
-  <div class="container">
-    <div class="text-box">
-      <p> One talk, World unlocked. </p>
-    </div>
-    <div class="image-box">
-      <img src="logo.png" alt="预设图片">
-    </div>
-  </div>
 
   <canvas id="canvas"></canvas>
 
@@ -126,19 +53,10 @@
     <input type="file" id="imgupload" style="display:none" />
     <button id="openImgUpload">上传图片</button>
     <button id="update_bg">更新背景</button>
-
-    <label>语言选择</label>
-    <select id="languageSelect">
-      <option value="zh-CN">中文</option>
-      <option value="ja-JP">日本語</option>
-      <option value="en-US">English</option>
-    </select>
-    <button id="languageUpdate">更新语言</button>
     <br />
 
     <!-- Circle Button for Audio Input -->
     <button id="input_audio" style="border-radius: 50%; width: 50px; height: 50px;">🎤</button>
-    <button id="stop_audio" style="border-radius: 50%; width: 50px; height: 50px;">⭕</button>
     <!-- <button id="start_recording">开始录音</button>
     <button id="stop_recording" disabled>停止录音</button> -->
 
@@ -255,61 +173,22 @@
         backgroundAlpha: 0,
       });
 
-      const azure_key = "";
+      const azure_key = "ca8a3d705f2c45248f11f9e253a1969a";
       const azure_region = "japaneast";
       const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(azure_key, azure_region);
-      // speechConfig.speechSynthesisLanguage = "ja-JP";
-      // speechConfig.speechSynthesisVoiceName = "ja-JP-NanamiNeural";
+      speechConfig.speechSynthesisLanguage = "en-US";
+      speechConfig.speechSynthesisVoiceName = "en-US-JennyNeural";
 
-      // 根据选择的语言设置语音合成参数
-      let speechSynthesizer;
-      function updateSpeechConfig() {
-        const languageSelect = document.getElementById('languageSelect');
-        const selectedLanguage = languageSelect.value;
-
-        switch (selectedLanguage) {
-          case 'zh-CN':
-            speechConfig.speechSynthesisLanguage = 'zh-CN';
-            speechConfig.speechSynthesisVoiceName = 'zh-CN-XiaoxiaoNeural';
-            break;
-          case 'ja-JP':
-            speechConfig.speechSynthesisLanguage = 'ja-JP';
-            speechConfig.speechSynthesisVoiceName = 'ja-JP-NanamiNeural';
-            break;
-          case 'en-US':
-            speechConfig.speechSynthesisLanguage = 'en-US';
-            speechConfig.speechSynthesisVoiceName = 'en-US-JennyNeural';
-            break;
-          default:
-            break;
-        }
-        console.log("Re-create the speechSynthesizer, language:", selectedLanguage)
-        // 重新创建 speechSynthesizer 实例
-        speechSynthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, null);
-      }
-
-      // 初始化时调用一次
-      updateSpeechConfig();
-
-      // const audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
-      // const speechSynthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
-      // const speechSynthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, null); // 不指定audioConfig，使其不自动播放
-
+      const audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+      const speechSynthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
 
       let audioContext = new (window.AudioContext || window.webkitAudioContext)();
       let audioBuffer = null;
       let audioSource = null;
       let offset = 0;
 
-      // AutoInteract has been abandoned
-      // var models = await Promise.all([
-      //   live2d.Live2DModel.from(cubism4Model, { autoInteract: eye_bool })
-      // ]);
       var models = await Promise.all([
-        live2d.Live2DModel.from(cubism4Model, {
-          autoHitTest: eye_bool,
-          autoFocus: eye_bool
-        })
+        live2d.Live2DModel.from(cubism4Model, { autoInteract: eye_bool })
       ]);
       PIXI.live2d.models = models;
 
@@ -341,14 +220,6 @@
         location.reload();
       });
 
-      // 当语言选择发生变化时,更新语音合成配置
-      // $('#languageSelect').change(function () {
-      //   updateSpeechConfig();
-      // });
-      $('#languageUpdate').click(function () {
-        updateSpeechConfig();
-      });
-
       $("#update_model").click(function () {
         axios.get('/edit_config', {
           params: { "model_path": $("#model_list").val() }
@@ -365,11 +236,6 @@
 
       $("#play").click(function () {
         talk(model4, "./Keira.wav");
-      });
-
-      $('#stop_audio').click(function () {
-        stopAudio();
-        console.log("Stop streaming audio.")
       });
 
       // 当按下 "q" 键时触发
@@ -400,7 +266,7 @@
             const timeout = setTimeout(() => {
               mediaRecorder.stop();
               stream.getTracks().forEach(track => track.stop());
-            }, 10000);
+            }, 5000);
 
             mediaRecorder.addEventListener('dataavailable', event => {
               chunks.push(event.data);
@@ -436,123 +302,58 @@
 
       const getText = async (audioBlob) => {
         const formData = new FormData();
+        // const audioBlob = await recorder.getAudioBlob();
         formData.append('audio', audioBlob, 'audio.wav');
-
-        // 在发送请求之前清空文本框
-        const textBox = document.querySelector('.text-box p');
-        textBox.textContent = '';
 
         const response = await fetch('http://localhost:8080/process_audio', {
           method: 'POST',
           body: formData,
         });
-
+        // procss text streaming
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
-
-        console.log("Call LLM done___");
+        console.log("Call LLM done___")
         const textStream = response.body;
-        await processText(textStream);
+        processAudio(textStream);
+
       };
 
-      const processText = async (textStream) => {
-        isProcessing = true;
-
+      const processAudio = async (textStream) => {
         const textReader = textStream.getReader();
         const decoder = new TextDecoder('utf-8');
         let done = false;
 
-        while (!done && isProcessing) {
+        let textBuffer = '';
+
+        while (!done) {
           const { value, done: doneReading } = await textReader.read();
           done = doneReading;
           const chunk = decoder.decode(value, { stream: true });
-          console.log(chunk);
-          if (chunk.trim() !== '') {
-            await handleTextChunk(chunk.trim());
-          }
-        }
-      };
+          console.log(chunk);  // You can see the chunk in console
+          textBuffer += chunk;
 
-      let audioQueue = [];
-      let isPlaying = false;
-
-      // To stop audio streaming
-      let isProcessing = false;
-      const stopAudio = () => {
-        isProcessing = false;
-        audioQueue = [];
-      };
-
-      const handleTextChunk = async (text) => {
-        const textBox = document.querySelector('.text-box p');
-        textBox.textContent += text;
-
-        const model4 = PIXI.live2d.models[0];
-
-        const audioUrl = await synthesizeAudio(text);
-        if (audioUrl !== null) {
-          audioQueue.push(audioUrl);
-          if (!isPlaying) {
-            playNextAudio(model4);
-          }
-        }
-      };
-
-      const synthesizeAudio = async (text) => {
-        return new Promise((resolve) => {
-          speechSynthesizer.speakTextAsync(
-            text,
-            async (result) => {
-              if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
-                console.log('Speech synthesis completed.');
-                const audioBuffer = await audioContext.decodeAudioData(result.audioData);
-                const audioUrl = await audioBufferToUrl(audioBuffer);
-                resolve(audioUrl);
-              }
-            },
-            (error) => {
-              console.error(`Speech synthesis error: ${error}`);
-              resolve(null);
+          if (!done) {
+            const sentenceEndIndex = textBuffer.lastIndexOf('.');
+            if (sentenceEndIndex !== -1) {
+              const completeText = textBuffer.substring(0, sentenceEndIndex + 1);
+              textBuffer = textBuffer.substring(sentenceEndIndex + 1);
+              await handleText(completeText);
             }
-          );
-        });
-      };
-
-      const playNextAudio = (model) => {
-        if (audioQueue.length === 0) {
-          isPlaying = false;
-          return;
+          } else {
+            console.log("The last sentence.")
+            if (textBuffer.length > 0) {
+              await handleText(textBuffer);
+            }
+          }
         }
-
-        isPlaying = true;
-        const audioUrl = audioQueue.shift();
-
-        // const audio = new Audio(audioUrl);
-
-        talk(model, audioUrl, () => {
-          console.log('Audio finished');
-
-          setTimeout(() => {
-            playNextAudio(model);
-          }, 100);
-          // playNextAudio(model);
-        });
-
-        // 双重播放
-        // audio.onended = () => {
-        //   playNextAudio(model);
-        // };
-        // audio.muted = true; // 将音频设置为静音
-        // talk(model, audioUrl);
-        // audio.play();
       };
 
-      const audioBufferToUrl = async (audioBuffer) => {
-        const wav = audioBufferToWav(audioBuffer);
-        const blob = new Blob([wav], { type: 'audio/wav' });
-        const url = URL.createObjectURL(blob);
-        return url;
+      const handleText = async (text) => {
+        const result = await synthesizer.speakTextAsync(text);
+        const audioBuffer = result.audioBuffer;
+        const model4 = PIXI.live2d.models[0];
+        playAudioAndDriveModel(model4, audioBuffer);
       };
 
       const audioBufferToWav = (buffer) => {
@@ -610,30 +411,22 @@
         }
       };
 
-      // const talk = (model, audioUrl) => {
-      //   var volume = 1;
-      //   var expression = 8;
-      //   var resetExpression = true;
-      //   var crossOrigin = "anonymous";
+      const playAudioAndDriveModel = async (model, audioBuffer) => {
+        const wavBuffer = audioBufferToWav(audioBuffer);
+        const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+        const url = URL.createObjectURL(blob);
 
-      //   model.speak(audioUrl, { volume: volume, expression: expression, resetExpression: resetExpression, crossOrigin: crossOrigin });
-      // };
+        talk(model, url);
+      };
 
-      const talk = (model, audioUrl, onFinish) => {
+      const talk = (model, audio_link) => {
         var volume = 1;
         var expression = 8;
         var resetExpression = true;
         var crossOrigin = "anonymous";
 
-        model.speak(audioUrl, {
-          volume: volume,
-          expression: expression,
-          resetExpression: resetExpression,
-          crossOrigin: crossOrigin,
-          onFinish: onFinish
-        });
+        model.speak(audio_link, { volume: volume, expression: expression, resetExpression: resetExpression, crossOrigin: crossOrigin });
       };
-
 
       const synthesizer = {
         speakTextAsync: async (text) => {
