@@ -47,7 +47,7 @@
       flex-direction: column;
       align-items: flex-start;
       position: absolute;
-      left: 180px;
+      left: 20px;
       top: 50%;
       transform: translateY(-50%);
       z-index: 1;
@@ -91,7 +91,6 @@
     }
 
     #canvas {
-      background-image: url('./bg.png');
       background-size: cover;
       background-position: center;
     }
@@ -123,14 +122,16 @@
     <label>前方直视</label>
     <br />
     <label>背景控制</label>
-    <input type="radio" id="option1" name="options" value="bg_color">
+    <input type="radio" id="option1" name="options" value="bg_color" checked>
     <label for="option1">背景颜色</label>
     <input id="bg_color" type="text" style="width:100px;">
-    <!-- <br /> -->
-    <input type="radio" id="option2" name="options" value="bg_img" checked>
-    <label for="option2">背景图片</label>
-    <button id="update_bg">更新背景</button>
     <br />
+    <input type="radio" id="option2" name="options" value="bg_img">
+    <label for="option2">背景图片</label>
+    <input type="file" id="imgupload" style="display:none" />
+    <button id="openImgUpload">上传图片</button>
+    <button id="update_bg">更新背景</button>
+
     <label>语言选择</label>
     <select id="languageSelect">
       <option value="zh-CN">中文</option>
@@ -156,7 +157,29 @@
       location.reload();
     });
 
+    $('#openImgUpload').click(function () {
+      $('#imgupload').trigger('click');
+    });
 
+    $('#imgupload').on('change', function () {
+      var formData = new FormData();
+      formData.append('image', $(this)[0].files[0]);
+
+      $.ajax({
+        url: '/upload',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (data) {
+          console.log('上传成功: ', data.filename);
+          setCookie("bg_img", data.filename, 1024);
+          var radioValue = $("input[name='options']:checked").val();
+          setCookie("bg_con", radioValue, 1024);
+          location.reload();
+        }
+      });
+    });
 
     function getCookie(name) {
       const value = "; " + document.cookie;
@@ -237,7 +260,7 @@
         backgroundAlpha: 0,
       });
 
-      const azure_key = "";
+      const azure_key = "ca8a3d705f2c45248f11f9e253a1969a";
       const azure_region = "japaneast";
       const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(azure_key, azure_region);
       // speechConfig.speechSynthesisLanguage = "ja-JP";
@@ -316,30 +339,12 @@
         }
       });
 
-
       $("#update_bg").click(function () {
         var radioValue = $("input[name='options']:checked").val();
         setCookie("bg_con", radioValue, 1024);
-
-        if (radioValue === "bg_color") {
-          setCookie("bg_color", $("#bg_color").val(), 1024);
-          $("#canvas").css("background-image", "none");
-          $("#canvas").css("background-color", $("#bg_color").val());
-        } else if (radioValue === "bg_img") {
-          setCookie("bg_color", "");
-          $("#canvas").css("background-color", "transparent");
-          $("#canvas").css("background-image", "url('./bg.png')");
-          $("#canvas").css("background-size", "cover");
-          $("#canvas").css("background-position", "center");
-        }
+        setCookie("bg_color", $("#bg_color").val(), 1024);
+        location.reload();
       });
-
-      // $("#update_bg").click(function () {
-      //   var radioValue = $("input[name='options']:checked").val();
-      //   setCookie("bg_con", radioValue, 1024);
-      //   setCookie("bg_color", $("#bg_color").val(), 1024);
-      //   location.reload();
-      // });
 
       // 当语言选择发生变化时,更新语音合成配置
       // $('#languageSelect').change(function () {
