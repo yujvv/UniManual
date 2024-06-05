@@ -5,6 +5,7 @@ import io
 # import langid
 from openai import OpenAI
 from chunkingText import TextCutter
+from rag_class import RagInterface
 
 AudioSegment.converter = "D:/ffmpeg-7.0.1-full_build/bin/ffmpeg.exe"
 
@@ -15,12 +16,17 @@ CORS(app)
 api_key = ""
 client = OpenAI(api_key=api_key)
 cutter = TextCutter(min_chars=15)
+rag_processor = RagInterface('demo.docx', 'index0', './index')
 
-def generate_text_stream(prompt):
-    # prompt = f"使用中文进行基于问题进行回答,回答只能包含简单的标点符号不包含星号等特殊符号。问题:{query}"
+def generate_text_stream(query):
+    prompt, title = rag_processor.process_input(query)
+    
     for chunk in client.chat.completions.create(
         model="gpt-4o",
-        messages=[{"role": "user", "content": prompt}],
+        messages=[
+            {'role': 'system', 'content': '请扮演一个智能助手，佑妮，基于背景，简练且严谨地回答问题。'},
+            {'role': 'user', 'content': prompt},
+        ],
         stream=True
     ):
         if (text_chunk := chunk.choices[0].delta.content):
