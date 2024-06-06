@@ -434,7 +434,7 @@
       });
 
       const updateImage = (newSrc) => {
-        if (title !== "N") {
+        if (newSrc !== "N") {
           const imgElement = document.getElementById('image-to-update');
           const encodedSrc = encodeURIComponent(newSrc);
           const imagePath = `./extracted_images/${encodedSrc}.png`;

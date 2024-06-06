@@ -25,14 +25,16 @@ translator = deepl.Translator(auth_key)
 
 
 templates = {
-    'ZH': '请扮演一个智能助手，基于背景，简练且严谨地回答问题。',
-    'JA': '背景に基づいて簡潔かつ正確に質問に答えるインテリジェントアシスタントを演じてください。',
-    'EN': 'Please act as an intelligent assistant and answer questions concisely and accurately based on the background.'
+    'ZH': '请扮演一个智能助手，基于背景，使用中文，简练且严谨地回答问题。',
+    'JA': '背景に基づいて、日本語を使用して、簡潔かつ正確に質問に答えるインテリジェントアシスタントを演じてください。',
+    'EN': 'Please act as an intelligent assistant, using English, and answer questions concisely and accurately based on the background.'
 }
 
 folder_path = "../extracted_images"
 # global images_list
-images_list = os.listdir(folder_path)
+# file_list = os.listdir(folder_path)
+image_list = [os.path.splitext(filename)[0] for filename in os.listdir(folder_path)]
+
 
 def generate_text_stream(prompt, language):
     
@@ -85,7 +87,7 @@ def process_audio():
     # 如果DeepL速度慢，可以考虑换ASR模型直接翻译
     language = request.form.get('language')
     main_lang = "ZH"
-    if language == main_lang:
+    if language != main_lang:
         translation_result = translator.translate_text(transcription, target_lang=main_lang)
         print("Translated Transcript:", translation_result.text)
         transcription = translation_result.text
@@ -96,7 +98,8 @@ def process_audio():
 
     prompt, title = rag_processor.process_input(transcription, language)
     
-    if title not in images_list:
+    if title not in image_list:
+        print("__________", image_list)
         title = 'N'
     
     def response_stream():

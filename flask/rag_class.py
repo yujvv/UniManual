@@ -15,21 +15,21 @@ class RagInterface:
         # 多语言支持
         
         self.responses = {
-            'zh-CN': [
+            'ZH': [
                 "对不起，我无法找到相关信息。您可以提供更多细节吗？或者尝试其他查询？",
                 "抱歉，我未找到您需要的信息。请尝试更换关键词或进一步描述您的需求。",
                 "抱歉，我未能找到相关内容。请提供更多具体细节，或者询问其他问题。",
                 "很抱歉，我未找到您所需的信息。如有其他问题或需要更多帮助，请随时告知。",
                 "抱歉，我未能找到您需要的资料。如有其他问题或需要特别帮助，请告诉我，我会尽力协助。"
             ],
-            'ja-JP': [
+            'JA': [
                 "申し訳ありませんが、関連情報が見つかりませんでした。もう少し詳しく教えていただけますか？または他の検索を試してみてください。",
                 "申し訳ありませんが、ご希望の情報が見つかりませんでした。キーワードを変更するか、さらに詳細に説明してください。",
                 "申し訳ありませんが、関連する内容が見つかりませんでした。具体的な詳細を提供するか、他の質問をしてください。",
                 "申し訳ありませんが、ご希望の情報が見つかりませんでした。他に質問がある場合や、さらにサポートが必要な場合はお知らせください。",
                 "申し訳ありませんが、ご希望の資料が見つかりませんでした。他に質問がある場合や特別なサポートが必要な場合はお知らせください。できる限りお手伝いします。"
             ],
-            'en-US': [
+            'EN': [
                 "Sorry, I couldn't find the relevant information. Could you provide more details or try another query?",
                 "Sorry, I couldn't find the information you need. Please try changing the keywords or further describe your request.",
                 "Sorry, I couldn't find the relevant content. Please provide more specific details or ask another question.",
@@ -40,23 +40,23 @@ class RagInterface:
         
     def get_prompt(self, language, context, user_input):
         templates = {
-            'zh-CN': (
+            'ZH': (
                 "你是一个智能助手，基于以下“问题”和“背景”，请生成一个简短且清晰的回答（忽略背景中 ‘[IGNORE]’ 和 ‘[/IGNORE]’ 之间的内容）。\\n\\n"
                 "### 背景:\\n{context} \\n\\n"
                 "### 问题:\\n{user_input}\\n\\n"
-                "### 请给出简短且清晰的回答，尽可能在五句话内完成:"
+                "### 请使用中文给出简短且清晰的回答，尽可能在五句话内完成:"
             ),
-            'ja-JP': (
+            'JA': (
                 "あなたはインテリジェントアシスタントです。以下の「質問」と「背景」に基づいて、簡潔で明確な回答を生成してください（背景の '[IGNORE]' と '[/IGNORE]' の間の内容は無視してください）。\\n\\n"
                 "### 背景:\\n{context} \\n\\n"
                 "### 質問:\\n{user_input}\\n\\n"
-                "### 簡潔で明確な回答を、できるだけ5文以内で提供してください:"
+                "### 日本語で簡潔かつ正確に回答し、背景に基づいてください:"
             ),
-            'en-US': (
+            'EN': (
                 "You are an intelligent assistant. Based on the following 'Question' and 'Background', please generate a concise and clear answer (ignore the content between '[IGNORE]' and '[/IGNORE]' in the background).\\n\\n"
                 "### Background:\\n{context} \\n\\n"
                 "### Question:\\n{user_input} \\n\\n"
-                "### Please provide a concise and clear answer, preferably within five sentences:"
+                "### Please respond concisely and clearly in English, based on the context, ideally within five sentences:"
             )
         }
 
