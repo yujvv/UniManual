@@ -103,7 +103,7 @@
       <p> One talk, World unlocked. </p>
     </div>
     <div class="image-box">
-      <img src="logo.png" alt="预设图片">
+      <img id="image-to-update" src="logo.png" alt="预设图片">
     </div>
   </div>
 
@@ -133,9 +133,9 @@
     <br />
     <label>语言选择</label>
     <select id="languageSelect">
-      <option value="zh-CN">中文</option>
-      <option value="ja-JP">日本語</option>
-      <option value="en-US">English</option>
+      <option value="ZH">中文</option>
+      <option value="JA">日本語</option>
+      <option value="EN">English</option>
     </select>
     <button id="languageUpdate">更新语言</button>
     <br />
@@ -250,15 +250,15 @@
         const selectedLanguage = languageSelect.value;
 
         switch (selectedLanguage) {
-          case 'zh-CN':
+          case 'ZH':
             speechConfig.speechSynthesisLanguage = 'zh-CN';
             speechConfig.speechSynthesisVoiceName = 'zh-CN-XiaoxiaoNeural';
             break;
-          case 'ja-JP':
+          case 'JA':
             speechConfig.speechSynthesisLanguage = 'ja-JP';
             speechConfig.speechSynthesisVoiceName = 'ja-JP-NanamiNeural';
             break;
-          case 'en-US':
+          case 'EN':
             speechConfig.speechSynthesisLanguage = 'en-US';
             speechConfig.speechSynthesisVoiceName = 'en-US-JennyNeural';
             break;
@@ -372,16 +372,16 @@
         console.log("Stop streaming audio.")
       });
 
-      // 当按下 "q" 键时触发
+      // 当按下 "Ctrl" 键时触发
       $(document).keydown(function (event) {
-        if (event.which === 81) {
+        if (event.which === 17) {
           $("#input_audio").mousedown();
         }
       });
 
-      // 当释放 "q" 键时触发
+      // 当释放 "Ctrl" 键时触发
       $(document).keyup(function (event) {
-        if (event.which === 81) {
+        if (event.which === 17) {
           $("#input_audio").mouseup();
         }
       });
@@ -433,10 +433,25 @@
         }
       });
 
+      const updateImage = (newSrc) => {
+        if (title !== "N") {
+          const imgElement = document.getElementById('image-to-update');
+          const encodedSrc = encodeURIComponent(newSrc);
+          const imagePath = `./extracted_images/${encodedSrc}.png`;
+          imgElement.src = imagePath;
+        } 
+        // else {
+        //   imgElement.src = "logo.png";
+        // }
+      };
 
       const getText = async (audioBlob) => {
         const formData = new FormData();
         formData.append('audio', audioBlob, 'audio.wav');
+        // 传语言类型
+        const languageSelect = document.getElementById('languageSelect');
+        const selectedLanguage = languageSelect.value;
+        formData.append('language', selectedLanguage);
 
         // 在发送请求之前清空文本框
         const textBox = document.querySelector('.text-box p');
@@ -462,14 +477,31 @@
         const textReader = textStream.getReader();
         const decoder = new TextDecoder('utf-8');
         let done = false;
+        // Extract Title
+        let title = '';
+        let isFirstChunk = true;
 
         while (!done && isProcessing) {
           const { value, done: doneReading } = await textReader.read();
           done = doneReading;
           const chunk = decoder.decode(value, { stream: true });
-          console.log(chunk);
-          if (chunk.trim() !== '') {
-            await handleTextChunk(chunk.trim());
+
+          if (!title) {
+            const separatorIndex = chunk.indexOf('|');
+            if (separatorIndex !== -1) {
+              title = chunk.slice(0, separatorIndex).trim();
+              console.log('Title:', title); // 在控制台输出标题
+              updateImage(title)
+            }
+          }
+          // console.log(chunk);
+
+          if (isFirstChunk) {
+            isFirstChunk = false; // 跳过第一个块
+          } else {
+            if (chunk.trim() !== '') {
+              await handleTextChunk(chunk.trim());
+            }
           }
         }
       };

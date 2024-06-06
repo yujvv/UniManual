@@ -61,7 +61,7 @@ def w_img(blob_data, save_path):
     with open(save_path, "wb") as f:
         f.write(blob_data)
 
-file_path = "M9Z.docx"  # 你的 Word 文档地址
+file_path = "demo.docx"  # 你的 Word 文档地址
 save_path = "extracted_images"  # 保存图片的文件夹路径
 result = get_img_text(file_path, save_path)
 
