@@ -1,0 +1,734 @@
+<html>
+
+<head>
+  <script src="./js/live2dcubismcore.min.js"></script>
+  <script src="./js/live2d.min.js"></script>
+  <script src="./js/pixi.min.js"></script>
+  <script src="./js/cubism4.min.js"></script>
+  <script src="./js/jquery-3.1.1.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+</head>
+
+<body>
+
+  <style>
+    /* CSS样式 */
+    #input_audio {
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      background-color: #fff;
+      /* 默认背景色 */
+    }
+
+    #input_audio:active {
+      background-color: #ccc;
+      /* 按下时的背景色 */
+    }
+
+
+    /* CSS样式 */
+    #stop_audio {
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      background-color: #fff;
+      /* 默认背景色 */
+    }
+
+    #stop_audio:active {
+      background-color: #ccc;
+      /* 按下时的背景色 */
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: absolute;
+      top: 370px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+    }
+
+    .text-box {
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 10px;
+      border-radius: 10px;
+      font-family: 'Arial', sans-serif;
+      font-size: 28px;
+      color: #333;
+      max-width: 90%;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .image-box {
+      background-color: #fff;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 90%;
+    }
+
+    .image-box img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 5px;
+    }
+
+    #control {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1;
+    }
+
+    #control button,
+    #control select {
+      font-size: 16px;
+      padding: 10px;
+    }
+
+    @media (max-width: 768px) {
+
+      #control label,
+      #control input[type="text"],
+      #control br {
+        display: none;
+      }
+    }
+
+    #input_audio,
+    #stop_audio {
+      font-size: 48px;
+      width: 120px;
+      height: 120px;
+      margin: 10px;
+    }
+
+    #canvas {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      z-index: 0;
+    }
+  </style>
+
+
+  <div class="container">
+    <div class="text-box">
+      <p> One talk, World unlocked. </p>
+    </div>
+    <div class="image-box">
+      <img id="image-to-update" src="logo.png" alt="预设图片">
+    </div>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <div id="control">
+    <button id="input_audio">🎤</button>
+    <button id="stop_audio">⭕</button>
+    <select id="languageSelect">
+      <option value="ZH">中文</option>
+      <option value="JA">日本語</option>
+      <option value="EN">English</option>
+    </select>
+  </div>
+
+  <script type="text/javascript">
+
+    $('input[name="eyes"]').click(function () {
+      var radioValue = $("input[name='eyes']:checked").val();
+      setCookie("eyes", radioValue, 1024);
+      location.reload();
+    });
+
+
+
+    function getCookie(name) {
+      const value = "; " + document.cookie;
+      const parts = value.split("; " + name + "=");
+      if (parts.length === 2) return parts.pop().split(";").shift();
+    }
+
+    function setCookie(name, value, days) {
+      const date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      const expires = "expires=" + date.toUTCString();
+      document.cookie = name + "=" + value + ";" + expires + ";path=/";
+    }
+
+    const selectedValue = getCookie("bg_con");
+    if (selectedValue) {
+      const radioButtons = document.getElementsByName("options");
+      radioButtons.forEach(radio => {
+        radio.checked = false;
+        if (radio.value === selectedValue) {
+          radio.checked = true;
+        }
+      });
+    }
+
+    const eyesValue = getCookie("eyes");
+    if (eyesValue) {
+      const radioButtons = document.getElementsByName("eyes");
+      radioButtons.forEach(radio => {
+        radio.checked = false;
+        if (radio.value == eyesValue) {
+          radio.checked = true;
+        }
+      });
+    }
+
+    let radioValue = $("input[name='options']:checked").val();
+    if (getCookie("bg_color") === undefined) { $("#bg_color").val("gray"); } else { $("#bg_color").val(getCookie("bg_color")); }
+    if (radioValue == "bg_color") {
+      $("#canvas").css("background-color", $("#bg_color").val());
+    } else {
+      if (getCookie("bg_img") !== undefined) {
+        let imageUrl = "./uploads/" + getCookie("bg_img");
+        $("#canvas").css("background-image", "url(" + imageUrl + ")");
+      }
+    }
+
+    let eye_bool = true;
+    if (getCookie("eyes") === undefined) { } else {
+      if (getCookie("eyes") == "false") {
+        eye_bool = false;
+      }
+    }
+
+    var cubism4Model = './models/<%=model_path%>/<%=model_path%>.model3.json';
+    var selected_model = '<%-model_path%>';
+    var model_list = '<%-model_list%>';
+    model_list = JSON.parse(model_list);
+
+    var $select = $("#model_list");
+    $select.empty();
+    $.each(model_list, function (index, value) {
+      if (value == selected_model) {
+        $select.append($("<option selected></option>").attr("value", value).text(value));
+      } else {
+        $select.append($("<option></option>").attr("value", value).text(value));
+      }
+    });
+
+    const live2d = PIXI.live2d;
+
+    (async function main() {
+      const app = new PIXI.Application({
+        view: document.getElementById("canvas"),
+        autoStart: true,
+        resizeTo: window,
+        transparent: true,
+        backgroundAlpha: 0,
+      });
+
+      const azure_key = "";
+      const azure_region = "japaneast";
+      const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(azure_key, azure_region);
+      // speechConfig.speechSynthesisLanguage = "ja-JP";
+      // speechConfig.speechSynthesisVoiceName = "ja-JP-NanamiNeural";
+
+      // 根据选择的语言设置语音合成参数
+      let speechSynthesizer;
+      function updateSpeechConfig() {
+        const languageSelect = document.getElementById('languageSelect');
+        const selectedLanguage = languageSelect.value;
+
+        switch (selectedLanguage) {
+          case 'ZH':
+            speechConfig.speechSynthesisLanguage = 'zh-CN';
+            speechConfig.speechSynthesisVoiceName = 'zh-CN-XiaoxiaoNeural';
+            break;
+          case 'JA':
+            speechConfig.speechSynthesisLanguage = 'ja-JP';
+            speechConfig.speechSynthesisVoiceName = 'ja-JP-NanamiNeural';
+            break;
+          case 'EN':
+            speechConfig.speechSynthesisLanguage = 'en-US';
+            speechConfig.speechSynthesisVoiceName = 'en-US-JennyNeural';
+            break;
+          default:
+            break;
+        }
+        console.log("Re-create the speechSynthesizer, language:", selectedLanguage)
+        // 重新创建 speechSynthesizer 实例
+        speechSynthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, null);
+      }
+
+      // 初始化时调用一次
+      updateSpeechConfig();
+
+      // const audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+      // const speechSynthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
+      // const speechSynthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, null); // 不指定audioConfig，使其不自动播放
+
+
+      let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      let audioBuffer = null;
+      let audioSource = null;
+      let offset = 0;
+
+      // AutoInteract has been abandoned
+      // var models = await Promise.all([
+      //   live2d.Live2DModel.from(cubism4Model, { autoInteract: eye_bool })
+      // ]);
+      var models = await Promise.all([
+        live2d.Live2DModel.from(cubism4Model, {
+          autoHitTest: eye_bool,
+          autoFocus: eye_bool
+        })
+      ]);
+      PIXI.live2d.models = models;
+
+      models.forEach((model) => {
+        app.stage.addChild(model);
+        const scaleX = (innerWidth) / model.width;
+        const scaleY = (innerHeight) / model.height;
+        model.scale.set(Math.min(scaleX, scaleY));
+        model.y = innerHeight * 0.1;
+        draggable(model);
+      });
+
+      const model4 = models[0];
+      // x的分母变大,模型左移
+      model4.x = innerWidth / 5.1;
+      model4.y = innerHeight / 1.9;
+      model4.scale.set(Math.min(innerWidth / model4.width, innerHeight / model4.height) * 0.9);
+
+      // window.addEventListener('resize', () => {
+      //   model4.x = innerWidth / 2;
+      //   model4.y = innerHeight / 2;
+      //   model4.scale.set(Math.min(innerWidth / model4.width, innerHeight / model4.height) * 0.8);
+      // });
+
+      model4.on("hit", (hitAreas) => {
+        if (hitAreas.includes("Body")) {
+          model4.motion("Tap");
+        }
+        if (hitAreas.includes("Head")) {
+          model4.expression();
+        }
+      });
+
+
+      $("#update_bg").click(function () {
+        var radioValue = $("input[name='options']:checked").val();
+        setCookie("bg_con", radioValue, 1024);
+
+        if (radioValue === "bg_color") {
+          setCookie("bg_color", $("#bg_color").val(), 1024);
+          $("#canvas").css("background-image", "none");
+          $("#canvas").css("background-color", $("#bg_color").val());
+        } else if (radioValue === "bg_img") {
+          setCookie("bg_color", "");
+          $("#canvas").css("background-color", "transparent");
+          $("#canvas").css("background-image", "url('./bg.png')");
+          $("#canvas").css("background-size", "cover");
+          $("#canvas").css("background-position", "center");
+        }
+      });
+
+      // $("#update_bg").click(function () {
+      //   var radioValue = $("input[name='options']:checked").val();
+      //   setCookie("bg_con", radioValue, 1024);
+      //   setCookie("bg_color", $("#bg_color").val(), 1024);
+      //   location.reload();
+      // });
+
+      // 当语言选择发生变化时,更新语音合成配置
+      // $('#languageSelect').change(function () {
+      //   updateSpeechConfig();
+      // });
+      $('#languageUpdate').click(function () {
+        updateSpeechConfig();
+      });
+
+      $("#update_model").click(function () {
+        axios.get('/edit_config', {
+          params: { "model_path": $("#model_list").val() }
+        })
+          .then(response => {
+            console.log(response.data);
+            location.reload();
+          })
+          .catch(error => {
+            console.error(error);
+            alert(error);
+          });
+      });
+
+      $("#play").click(function () {
+        talk(model4, "./Keira.wav");
+      });
+
+      $('#stop_audio').click(function () {
+        stopAudio();
+        console.log("Stop streaming audio.")
+      });
+
+      // 当按下 "Ctrl" 键时触发
+      $(document).keydown(function (event) {
+        if (event.which === 17) {
+          $("#input_audio").mousedown();
+        }
+      });
+
+      // 当释放 "Ctrl" 键时触发
+      $(document).keyup(function (event) {
+        if (event.which === 17) {
+          $("#input_audio").mouseup();
+        }
+      });
+
+      let mediaRecorder;
+      let chunks = [];
+
+      $("#input_audio").mousedown(function () {
+        $(this).addClass("pressed").removeClass("released");
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then(stream => {
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+
+            const timeout = setTimeout(() => {
+              mediaRecorder.stop();
+              stream.getTracks().forEach(track => track.stop());
+            }, 10000);
+
+            mediaRecorder.addEventListener('dataavailable', event => {
+              chunks.push(event.data);
+            });
+
+            mediaRecorder.addEventListener('stop', () => {
+              clearTimeout(timeout);
+              const audioBlob = new Blob(chunks, { type: 'audio/wav' });
+              chunks = [];
+              getText(audioBlob)
+
+              // Play the audio by Live2D
+              // const audioUrl = URL.createObjectURL(audioBlob);
+              // const model4 = PIXI.live2d.models[0];
+              // talk(model4, audioUrl);
+            });
+          })
+          .catch(error => {
+            console.error('Error accessing microphone:', error);
+          });
+      });
+
+      $("#input_audio").mouseup(function () {
+        $(this).addClass("released").removeClass("pressed");
+
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+          // 发送音频文件给接口
+          // sendAudioToServer();
+        }
+      });
+
+      const updateImage = (newSrc) => {
+        if (newSrc !== "N") {
+          const imgElement = document.getElementById('image-to-update');
+          const encodedSrc = encodeURIComponent(newSrc);
+          const imagePath = `./extracted_images/${encodedSrc}.png`;
+          imgElement.src = imagePath;
+        }
+        // else {
+        //   imgElement.src = "logo.png";
+        // }
+      };
+
+      const getText = async (audioBlob) => {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'audio.wav');
+        // 传语言类型
+        const languageSelect = document.getElementById('languageSelect');
+        const selectedLanguage = languageSelect.value;
+        formData.append('language', selectedLanguage);
+
+        // 在发送请求之前清空文本框
+        const textBox = document.querySelector('.text-box p');
+        textBox.textContent = '';
+
+        const response = await fetch('https://100.69.234.63:8080/process_audio', {
+          method: 'POST',
+          body: formData,
+          // headers: {
+          //   'Content-Type': 'multipart/form-data'
+          // }
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        console.log("Call LLM done___");
+        const textStream = response.body;
+        await processText(textStream);
+      };
+
+      const processText = async (textStream) => {
+        isProcessing = true;
+
+        const textReader = textStream.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let done = false;
+        // Extract Title
+        let title = '';
+        let isFirstChunk = true;
+
+        while (!done && isProcessing) {
+          const { value, done: doneReading } = await textReader.read();
+          done = doneReading;
+          const chunk = decoder.decode(value, { stream: true });
+
+          if (!title) {
+            const separatorIndex = chunk.indexOf('|');
+            if (separatorIndex !== -1) {
+              title = chunk.slice(0, separatorIndex).trim();
+              console.log('Title:', title); // 在控制台输出标题
+              updateImage(title)
+            }
+          }
+          // console.log(chunk);
+
+          if (isFirstChunk) {
+            isFirstChunk = false; // 跳过第一个块
+          } else {
+            if (chunk.trim() !== '') {
+              await handleTextChunk(chunk.trim());
+            }
+          }
+        }
+      };
+
+      let audioQueue = [];
+      let isPlaying = false;
+
+      // To stop audio streaming
+      let isProcessing = false;
+      const stopAudio = () => {
+        isProcessing = false;
+        audioQueue = [];
+      };
+
+      const handleTextChunk = async (text) => {
+        const textBox = document.querySelector('.text-box p');
+        textBox.textContent += text;
+
+        const model4 = PIXI.live2d.models[0];
+
+        const audioUrl = await synthesizeAudio(text);
+        if (audioUrl !== null) {
+          audioQueue.push(audioUrl);
+          if (!isPlaying) {
+            playNextAudio(model4);
+          }
+        }
+      };
+
+      const synthesizeAudio = async (text) => {
+        return new Promise((resolve) => {
+          speechSynthesizer.speakTextAsync(
+            text,
+            async (result) => {
+              if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
+                console.log('Speech synthesis completed.');
+                const audioBuffer = await audioContext.decodeAudioData(result.audioData);
+                const audioUrl = await audioBufferToUrl(audioBuffer);
+                resolve(audioUrl);
+              }
+            },
+            (error) => {
+              console.error(`Speech synthesis error: ${error}`);
+              resolve(null);
+            }
+          );
+        });
+      };
+
+      const playNextAudio = (model) => {
+        if (audioQueue.length === 0) {
+          isPlaying = false;
+          return;
+        }
+
+        isPlaying = true;
+        const audioUrl = audioQueue.shift();
+
+        // const audio = new Audio(audioUrl);
+
+        talk(model, audioUrl, () => {
+          console.log('Audio finished');
+
+          setTimeout(() => {
+            playNextAudio(model);
+          }, 100);
+          // playNextAudio(model);
+        });
+
+        // 双重播放
+        // audio.onended = () => {
+        //   playNextAudio(model);
+        // };
+        // audio.muted = true; // 将音频设置为静音
+        // talk(model, audioUrl);
+        // audio.play();
+      };
+
+      const audioBufferToUrl = async (audioBuffer) => {
+        const wav = audioBufferToWav(audioBuffer);
+        const blob = new Blob([wav], { type: 'audio/wav' });
+        const url = URL.createObjectURL(blob);
+        return url;
+      };
+
+      const audioBufferToWav = (buffer) => {
+        const numOfChan = buffer.numberOfChannels;
+        const length = buffer.length * (numOfChan === 2 ? 4 : 2) + 44;
+        const bufferInfo = new ArrayBuffer(length);
+        const view = new DataView(bufferInfo);
+        const channels = [];
+        let offset = 0;
+        let pos = 0;
+
+        // write WAVE header
+        writeUint32(0x46464952); // "RIFF"
+        writeUint32(length - 8); // file length - 8
+        writeUint32(0x45564157); // "WAVE"
+
+        writeUint32(0x20746d66); // "fmt " chunk
+        writeUint32(16); // length = 16
+        writeUint16(1); // PCM (uncompressed)
+        writeUint16(numOfChan);
+        writeUint32(buffer.sampleRate);
+        writeUint32(buffer.sampleRate * (numOfChan === 2 ? 4 : 2)); // avg. bytes/sec
+        writeUint16(numOfChan === 2 ? 4 : 2); // block-align
+        writeUint16(16); // 16-bit (hardcoded in this demo)
+
+        writeUint32(0x61746164); // "data" - chunk
+        writeUint32(length - pos - 4); // chunk length
+
+        // write interleaved data
+        for (let i = 0; i < numOfChan; i++) {
+          channels.push(buffer.getChannelData(i));
+        }
+
+        while (pos < length) {
+          for (let i = 0; i < numOfChan; i++) {
+            // interleave channels
+            let sample = Math.max(-1, Math.min(1, channels[i][offset])); // clamp
+            sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0; // scale to 16-bit signed int
+            view.setInt16(pos, sample, true); // write 16-bit sample
+            pos += 2;
+          }
+          offset++; // next source sample
+        }
+
+        return bufferInfo;
+
+        function writeUint16(data) {
+          view.setUint16(pos, data, true);
+          pos += 2;
+        }
+
+        function writeUint32(data) {
+          view.setUint32(pos, data, true);
+          pos += 4;
+        }
+      };
+
+      // const talk = (model, audioUrl) => {
+      //   var volume = 1;
+      //   var expression = 8;
+      //   var resetExpression = true;
+      //   var crossOrigin = "anonymous";
+
+      //   model.speak(audioUrl, { volume: volume, expression: expression, resetExpression: resetExpression, crossOrigin: crossOrigin });
+      // };
+
+      const talk = (model, audioUrl, onFinish) => {
+        var volume = 1;
+        var expression = 8;
+        var resetExpression = true;
+        var crossOrigin = "anonymous";
+
+        model.speak(audioUrl, {
+          volume: volume,
+          expression: expression,
+          resetExpression: resetExpression,
+          crossOrigin: crossOrigin,
+          onFinish: onFinish
+        });
+      };
+
+
+      const synthesizer = {
+        speakTextAsync: async (text) => {
+          return new Promise((resolve, reject) => {
+            speechSynthesizer.speakTextAsync(
+              text,
+              async (result) => {
+                if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
+                  const audioBuffer = await audioContext.decodeAudioData(result.audioData);
+                  resolve({ audioBuffer });
+                } else {
+                  reject(new Error(`Speech synthesis failed: ${result.errorDetails}`));
+                }
+              },
+              (error) => {
+                reject(new Error(`Speech synthesis error: ${error}`));
+              }
+            );
+          });
+        }
+      };
+
+
+    })();
+
+
+    // function talk(model, audio) {
+    //   var audio_link = audio;
+    //   var volume = 1;
+    //   var expression = 8;
+    //   var resetExpression = true;
+    //   var crossOrigin = "anonymous";
+
+    //   model.speak(audio_link, { volume: volume, expression: expression, resetExpression: resetExpression, crossOrigin: crossOrigin })
+    //   model.speak(audio_link)
+    //   model.speak(audio_link, { volume: volume })
+    //   model.speak(audio_link, { expression: expression, resetExpression: resetExpression })
+    // }
+
+    function draggable(model) {
+      model.buttonMode = true;
+      model.on("pointerdown", (e) => {
+        model.dragging = true;
+        model._pointerX = e.data.global.x - model.x;
+        model._pointerY = e.data.global.y - model.y;
+      });
+      model.on("pointermove", (e) => {
+        if (model.dragging) {
+          model.position.x = e.data.global.x - model._pointerX;
+          model.position.y = e.data.global.y - model._pointerY;
+        }
+      });
+      model.on("pointerupoutside", () => {
+        model.dragging = false;
+      });
+      model.on("pointerup", () => {
+        model.dragging = false;
+      });
+    }
+  </script>
+</body>
+
+</html>

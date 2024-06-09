@@ -113,4 +113,5 @@ def process_audio():
     return Response(response_stream(), content_type='text/plain')
 
 if __name__ == '__main__':
-    app.run(debug=False, host='0.0.0.0', port=8080)
+    # app.run(debug=False, host='0.0.0.0', port=8080)
+    app.run(debug=False, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))
