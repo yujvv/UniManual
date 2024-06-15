@@ -253,8 +253,6 @@
       // const azure_key = '<%= process.env.AZURE_KEY %>';
       // 如下方式,就没有转义的过程了
       const azure_key = '<%- process.env.AZURE_KEY %>';
-      console.log("___________________", azure_key)
-
       const azure_region = "japaneast";
       const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(azure_key, azure_region);
       // speechConfig.speechSynthesisLanguage = "ja-JP";

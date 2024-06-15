@@ -16,3 +16,6 @@ export DEEPL_KEY
 npm install
 node app.js
 ```
+
+### Ref
+https://guansss.github.io/pixi-live2d-display/configs/
