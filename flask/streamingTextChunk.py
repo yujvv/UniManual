@@ -15,12 +15,12 @@ app = Flask(__name__)
 CORS(app)
 
 # OpenAI Settings
-api_key = ""
+api_key = os.getenv('OPENAI_KEY')
 client = OpenAI(api_key=api_key)
 cutter = TextCutter(min_chars=11)
 rag_processor = RagInterface('demo.docx', 'index0', './index')
 
-auth_key = ""
+auth_key = os.getenv('DEEPL_KEY')
 translator = deepl.Translator(auth_key)
 
 

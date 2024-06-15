@@ -228,7 +228,7 @@
         backgroundAlpha: 0,
       });
 
-      const azure_key = "";
+      const azure_key = process.env.AZURE_KEY;
       const azure_region = "japaneast";
       const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(azure_key, azure_region);
       // speechConfig.speechSynthesisLanguage = "ja-JP";

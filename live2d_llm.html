@@ -146,6 +146,17 @@
     <!-- <button id="start_recording">开始录音</button>
     <button id="stop_recording" disabled>停止录音</button> -->
 
+
+    <br />
+
+    <!-- 在HTML中添加按钮 -->
+    <button id="tearBtn">Tear</button>
+    <button id="angryBtn">Angry</button>
+    <button id="despairBtn">Despair</button>
+    <button id="happyBtn">Happy</button>
+    <button id="panicBtn">Panic</button>
+
+
   </div>
 
   <script type="text/javascript">
@@ -236,8 +247,7 @@
         transparent: true,
         backgroundAlpha: 0,
       });
-
-      const azure_key = "";
+      const azure_key = process.env.AZURE_KEY;
       const azure_region = "japaneast";
       const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(azure_key, azure_region);
       // speechConfig.speechSynthesisLanguage = "ja-JP";
@@ -316,6 +326,128 @@
         }
       });
 
+      const internalModel = model4.internalModel;
+      console.log('Available expressions:', internalModel.settings.expressions);
+      console.log('Available motions:', internalModel.settings.motions);
+
+      const expressionMap = {
+        Tear: 'Sad.exp3.json',
+        Angry: 'Angry.exp3.json',
+        Despair: 'Dispair.exp3.json',
+        Happy: 'Happy.exp3.json',
+        Panic: 'Shock.exp3.json'
+      };
+
+      const motionMap = {
+        Tear: 'motions/haru_g_m26.motion3.json',
+        Angry: 'motions/haru_g_m06.motion3.json',
+        Despair: 'motions/haru_g_m20.motion3.json',
+        Happy: 'motions/haru_g_m09.motion3.json',
+        Panic: 'motions/mtn_03.motion3.json'
+      };
+
+      // 获取按钮元素
+      const tearBtn = document.getElementById('tearBtn');
+      const angryBtn = document.getElementById('angryBtn');
+      const despairBtn = document.getElementById('despairBtn');
+      const happyBtn = document.getElementById('happyBtn');
+      const panicBtn = document.getElementById('panicBtn');
+
+      // 为按钮添加点击事件监听器
+      tearBtn.addEventListener('click', () => triggerExpression('Tear'));
+      angryBtn.addEventListener('click', () => triggerExpression('Angry'));
+      despairBtn.addEventListener('click', () => triggerExpression('Despair'));
+      happyBtn.addEventListener('click', () => triggerExpression('Happy'));
+      panicBtn.addEventListener('click', () => triggerExpression('Panic'));
+
+
+      // 表情会随着音频播放完成而回到默认,考虑对此进行控制
+      function triggerExpression(expressionName) {
+        if (model4) {
+          const internalModel = model4.internalModel;
+          const expressionFile = expressionMap[expressionName];
+          if (expressionFile) {
+            const expressions = internalModel.settings.expressions;
+            const expression = expressions.find(expr => expr.File.endsWith(expressionFile));
+            if (expression) {
+              // // apply the first expression
+              // model.expression(0);
+              // // apply the expression named "smile"
+              // model.expression('smile');
+              model4.expression(expression.Name);
+              // model.internalModel.motionManager.expressionManager.setExpression('smile');
+              console.log(`Expression ${expression.Name} triggered.`);
+            } else {
+              console.log(`Expression file ${expressionFile} not found.`);
+            }
+          } else {
+            console.log(`No expression mapped for ${expressionName}.`);
+          }
+        } else {
+          console.log('Live2D model not loaded.');
+        }
+      }
+
+      function triggerMotion(motionName) {
+        if (model4) {
+          const internalModel = model4.internalModel;
+
+          // 检查是否存在动作列表
+          if (internalModel.settings.motions && Object.keys(internalModel.settings.motions).length > 0) {
+            // https://guansss.github.io/pixi-live2d-display/motions_expressions/
+            const motionFile = motionMap[motionName];
+            if (motionFile) {
+              console.log(internalModel);
+              const motionManager = internalModel.motionManager;
+              const motionGroups = internalModel.settings.motions;
+
+              // 获取动作文件名
+              const motionFileName = motionFile.split('/').pop();
+
+              // 查找包含动作文件的组名
+              const motionGroupName = Object.keys(motionGroups).find(groupName =>
+                motionGroups[groupName].some(motion => motion.File.endsWith(motionFileName))
+              );
+
+              if (motionGroupName) {
+                const motionIndex = motionGroups[motionGroupName].findIndex(motion => motion.File.endsWith(motionFileName));
+                if (motionIndex !== -1) {
+                  // 动作会有搭配的音频，如下方式禁用动作音频其实会导致正常lip sync的音频也没办法播放，所以最好的方式是直接去修改motion的动作文件。后续的demo可以说明可以调用动作，但是用expression演示，问题会少很多。
+                  // // 临时禁用声音
+                  // const motion = motionGroups[motionGroupName][motionIndex];
+                  // const originalSound = motion.Sound; // 假设Sound是声音属性
+                  // // 移除声音
+                  // motion.Sound = null;
+                  // // 恢复声音
+                  // motion.Sound = originalSound;
+
+                  // start the first motion in "tap_body" group
+                  // model.motion('tap_body', 0);
+                  // the above calls are shorthands of these methods
+                  // 0: 最低优先级, 通常用于闲置或待机状态下的动作。
+                  // 1: 普通优先级, 用于一般的动作。
+                  // 2: 较高优先级, 用于重要的动作或需要立即响应的动作。
+                  // 3: 最高优先级, 用于最重要或紧急的动作, 会中断其他所有动作并立即执行。
+                  motionManager.startMotion(motionGroupName, motionIndex, 3);
+                  console.log(`Motion ${motionFileName} triggered in group ${motionGroupName}.`);
+                  // 恢复声音
+                  motion.Sound = originalSound;
+                } else {
+                  console.log(`Motion file ${motionFileName} not found in group ${motionGroupName}.`);
+                }
+              } else {
+                console.log(`Motion file ${motionFileName} not found in any group.`);
+              }
+            } else {
+              console.log(`No motion mapped for ${motionName}.`);
+            }
+          } else {
+            console.log('No motions available for this model.');
+          }
+        } else {
+          console.log('Live2D model not loaded.');
+        }
+      }
 
       $("#update_bg").click(function () {
         var radioValue = $("input[name='options']:checked").val();
@@ -433,13 +565,31 @@
         }
       });
 
+      // // 更新表情 todo
+      // const changeExpression = (expressionName) => {
+      //   if (window.live2dModel) {
+      //     const expressions = window.live2dModel.internalModel.settings.expressions;
+      //     const expression = expressions.find(expr => expr.name === expressionName);
+      //     if (expression) {
+      //       window.live2dModel.expression = expression;
+      //     }
+      //   }
+      // }
+      // // 更新动作 todo
+      // function triggerMotion(motionGroup, motionName) {
+      //   if (window.live2dModel) {
+      //     window.live2dModel.internalModel.motionManager.startMotion(motionGroup, motionName);
+      //   }
+      // }
+
+
       const updateImage = (newSrc) => {
         if (newSrc !== "N") {
           const imgElement = document.getElementById('image-to-update');
           const encodedSrc = encodeURIComponent(newSrc);
           const imagePath = `./extracted_images/${encodedSrc}.png`;
           imgElement.src = imagePath;
-        } 
+        }
         // else {
         //   imgElement.src = "logo.png";
         // }

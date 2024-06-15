@@ -11,7 +11,7 @@ class Faiss_GPU:
         self.name = name
         self.path = path
         self.index_path = os.path.join(path, f"{name}.pkl")
-        self.openai_api_key = ""
+        self.openai_api_key = os.getenv('OPENAI_KEY')
         self.openai_embedding_model = openai_embedding_model
         self.client = OpenAI(api_key=self.openai_api_key)
 

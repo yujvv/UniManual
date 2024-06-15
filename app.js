@@ -5,28 +5,25 @@ const path = require('path');
 const app = express();
 const multer  = require('multer');
 
-const https = require('https');
-const options = {
-  key: fs.readFileSync('key.pem'),
-  cert: fs.readFileSync('cert.pem'),
-  passphrase: '0617'
-};
+// const https = require('https');
+// const options = {
+//   key: fs.readFileSync('key.pem'),
+//   cert: fs.readFileSync('cert.pem'),
+//   passphrase: '0617'
+// };
 
-https.createServer(options, app).listen(8081, '0.0.0.0', () => {
-  console.log("Application started and Listening on port 8081");
-});
-
-// app.listen(3000, () => {
-//   console.log("Application started and Listening on port 3000");
-//   console.log("http://localhost:3000 ");
+// https.createServer(options, app).listen(8081, '0.0.0.0', () => {
+//   console.log("Application started and Listening on port 8081");
 // });
+
+app.listen(3000, () => {
+  console.log("Application started and Listening on port 3000");
+  console.log("http://localhost:3000 ");
+});
 
 // app.listen(8081, '0.0.0.0', () => {
 //   console.log("Application started and Listening on port 8081");
 // });
-
-
-
 
 // serve your css as static
 app.use(express.static(__dirname));
