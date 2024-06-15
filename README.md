@@ -8,6 +8,8 @@ talk to web manual
 export AZURE_KEY
 export OPENAI_KEY
 export DEEPL_KEY 
+
+# win用set
 ```
 
 ```
