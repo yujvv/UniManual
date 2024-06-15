@@ -247,7 +247,14 @@
         transparent: true,
         backgroundAlpha: 0,
       });
-      const azure_key = process.env.AZURE_KEY;
+      // web环境中没有process
+      // const azure_key = process.env.AZURE_KEY;
+      // 将特殊字符转换为对应的 HTML 实体,这是为了防止 XSS（跨站脚本）攻击
+      // const azure_key = '<%= process.env.AZURE_KEY %>';
+      // 如下方式,就没有转义的过程了
+      const azure_key = '<%- process.env.AZURE_KEY %>';
+      console.log("___________________", azure_key)
+
       const azure_region = "japaneast";
       const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(azure_key, azure_region);
       // speechConfig.speechSynthesisLanguage = "ja-JP";
