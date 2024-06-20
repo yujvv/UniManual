@@ -9,7 +9,7 @@ from chunkingText import TextCutter
 from rag_class import RagInterface
 import deepl
 
-AudioSegment.converter = "D:/ffmpeg-7.0.1-full_build/bin/ffmpeg.exe"
+AudioSegment.converter = "D:/ffmpeg/bin/ffmpeg.exe"
 
 app = Flask(__name__)
 CORS(app)
@@ -35,6 +35,9 @@ folder_path = "../extracted_images"
 # file_list = os.listdir(folder_path)
 image_list = [os.path.splitext(filename)[0] for filename in os.listdir(folder_path)]
 
+@app.route('/')
+def hello():
+    return "hello"
 
 def generate_text_stream(prompt, language):
     
@@ -113,5 +116,6 @@ def process_audio():
     return Response(response_stream(), content_type='text/plain')
 
 if __name__ == '__main__':
-    # app.run(debug=False, host='0.0.0.0', port=8080)
-    app.run(debug=False, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))
+    # app.run(debug=False, port=8080)
+    app.run(debug=False, host='0.0.0.0', port=8080)
+    # app.run(debug=False, host='0.0.0.0', port=8080, ssl_context=('cert.pem', 'key.pem'))

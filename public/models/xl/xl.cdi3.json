@@ -1,0 +1,666 @@
+{
+	"Version": 3,
+	"Parameters": [
+		{
+			"Id": "Param4",
+			"GroupId": "ParamGroup",
+			"Name": "w"
+		},
+		{
+			"Id": "Param5",
+			"GroupId": "ParamGroup",
+			"Name": "w"
+		},
+		{
+			"Id": "Param6",
+			"GroupId": "ParamGroup",
+			"Name": "w"
+		},
+		{
+			"Id": "Param7",
+			"GroupId": "ParamGroup",
+			"Name": "w"
+		},
+		{
+			"Id": "Param8",
+			"GroupId": "ParamGroup",
+			"Name": "w"
+		},
+		{
+			"Id": "Param9",
+			"GroupId": "ParamGroup",
+			"Name": "w"
+		},
+		{
+			"Id": "Param10",
+			"GroupId": "ParamGroup",
+			"Name": "wl"
+		},
+		{
+			"Id": "Param11",
+			"GroupId": "ParamGroup",
+			"Name": "wl"
+		},
+		{
+			"Id": "Param12",
+			"GroupId": "ParamGroup",
+			"Name": "wl"
+		},
+		{
+			"Id": "Param14",
+			"GroupId": "ParamGroup",
+			"Name": "cf"
+		},
+		{
+			"Id": "Param15",
+			"GroupId": "ParamGroup",
+			"Name": "cf"
+		},
+		{
+			"Id": "Param17",
+			"GroupId": "ParamGroup",
+			"Name": "cf"
+		},
+		{
+			"Id": "Param16",
+			"GroupId": "ParamGroup",
+			"Name": "cf"
+		},
+		{
+			"Id": "Param18",
+			"GroupId": "ParamGroup",
+			"Name": "pd"
+		},
+		{
+			"Id": "Param19",
+			"GroupId": "ParamGroup",
+			"Name": "pd"
+		},
+		{
+			"Id": "Param20",
+			"GroupId": "ParamGroup",
+			"Name": "pd"
+		},
+		{
+			"Id": "Param21",
+			"GroupId": "ParamGroup",
+			"Name": "pd"
+		},
+		{
+			"Id": "Param22",
+			"GroupId": "ParamGroup",
+			"Name": "qz"
+		},
+		{
+			"Id": "Param23",
+			"GroupId": "ParamGroup",
+			"Name": "qz"
+		},
+		{
+			"Id": "Param24",
+			"GroupId": "ParamGroup",
+			"Name": "qz"
+		},
+		{
+			"Id": "Param25",
+			"GroupId": "ParamGroup",
+			"Name": "qz"
+		},
+		{
+			"Id": "Param26",
+			"GroupId": "ParamGroup",
+			"Name": "qzz"
+		},
+		{
+			"Id": "Param27",
+			"GroupId": "ParamGroup",
+			"Name": "qz"
+		},
+		{
+			"Id": "Param28",
+			"GroupId": "ParamGroup",
+			"Name": "qz"
+		},
+		{
+			"Id": "Param29",
+			"GroupId": "ParamGroup",
+			"Name": "qz"
+		},
+		{
+			"Id": "Param30",
+			"GroupId": "ParamGroup",
+			"Name": "gb"
+		},
+		{
+			"Id": "Param31",
+			"GroupId": "ParamGroup",
+			"Name": "gb"
+		},
+		{
+			"Id": "Param32",
+			"GroupId": "ParamGroup",
+			"Name": "y"
+		},
+		{
+			"Id": "Param33",
+			"GroupId": "ParamGroup",
+			"Name": "y"
+		},
+		{
+			"Id": "Param34",
+			"GroupId": "ParamGroup",
+			"Name": "y"
+		},
+		{
+			"Id": "Param35",
+			"GroupId": "ParamGroup",
+			"Name": "y"
+		},
+		{
+			"Id": "Param36",
+			"GroupId": "ParamGroup",
+			"Name": "y"
+		},
+		{
+			"Id": "Param37",
+			"GroupId": "ParamGroup",
+			"Name": "y"
+		},
+		{
+			"Id": "Param38",
+			"GroupId": "ParamGroup",
+			"Name": "y"
+		},
+		{
+			"Id": "Param39",
+			"GroupId": "ParamGroup",
+			"Name": "st"
+		},
+		{
+			"Id": "Param40",
+			"GroupId": "ParamGroup",
+			"Name": "sy"
+		},
+		{
+			"Id": "Param44",
+			"GroupId": "ParamGroup",
+			"Name": "piapf"
+		},
+		{
+			"Id": "Param45",
+			"GroupId": "ParamGroup",
+			"Name": "piaof"
+		},
+		{
+			"Id": "Param42",
+			"GroupId": "ParamGroup",
+			"Name": "wbwl"
+		},
+		{
+			"Id": "Param48",
+			"GroupId": "ParamGroup",
+			"Name": "qf"
+		},
+		{
+			"Id": "Param49",
+			"GroupId": "ParamGroup",
+			"Name": "qf"
+		},
+		{
+			"Id": "Param50",
+			"GroupId": "ParamGroup",
+			"Name": "qfy"
+		},
+		{
+			"Id": "Param51",
+			"GroupId": "ParamGroup",
+			"Name": "qfy"
+		},
+		{
+			"Id": "Param52",
+			"GroupId": "ParamGroup",
+			"Name": "ed"
+		},
+		{
+			"Id": "Param53",
+			"GroupId": "ParamGroup",
+			"Name": "ed"
+		},
+		{
+			"Id": "Param54",
+			"GroupId": "ParamGroup",
+			"Name": "ed"
+		},
+		{
+			"Id": "Param55",
+			"GroupId": "ParamGroup",
+			"Name": "ed"
+		},
+		{
+			"Id": "Param56",
+			"GroupId": "ParamGroup",
+			"Name": "tz"
+		},
+		{
+			"Id": "ParamAngleX",
+			"GroupId": "",
+			"Name": "角度 X"
+		},
+		{
+			"Id": "ParamAngleY",
+			"GroupId": "",
+			"Name": "角度 Y"
+		},
+		{
+			"Id": "ParamEyeLOpen",
+			"GroupId": "",
+			"Name": "左眼　开闭"
+		},
+		{
+			"Id": "ParamEyeLSmile",
+			"GroupId": "",
+			"Name": "左眼　微笑"
+		},
+		{
+			"Id": "Param",
+			"GroupId": "",
+			"Name": "yy1"
+		},
+		{
+			"Id": "Param2",
+			"GroupId": "",
+			"Name": "yy2"
+		},
+		{
+			"Id": "Param3",
+			"GroupId": "",
+			"Name": "yy3"
+		},
+		{
+			"Id": "ParamAngleZ",
+			"GroupId": "",
+			"Name": "角度 Z"
+		},
+		{
+			"Id": "ParamEyeROpen",
+			"GroupId": "",
+			"Name": "右眼"
+		},
+		{
+			"Id": "ParamEyeRSmile",
+			"GroupId": "",
+			"Name": "右眼　微笑"
+		},
+		{
+			"Id": "ParamEyeBallX",
+			"GroupId": "",
+			"Name": "眼球 X"
+		},
+		{
+			"Id": "ParamEyeBallY",
+			"GroupId": "",
+			"Name": "眼球 Y"
+		},
+		{
+			"Id": "ParamBrowLY",
+			"GroupId": "",
+			"Name": "左眉上下"
+		},
+		{
+			"Id": "ParamBrowRY",
+			"GroupId": "",
+			"Name": "右眉　上下"
+		},
+		{
+			"Id": "ParamBrowLX",
+			"GroupId": "",
+			"Name": "左眉　左右"
+		},
+		{
+			"Id": "ParamBrowRX",
+			"GroupId": "",
+			"Name": "右眉　左右"
+		},
+		{
+			"Id": "ParamBrowLAngle",
+			"GroupId": "",
+			"Name": "左眉　角度"
+		},
+		{
+			"Id": "ParamBrowRAngle",
+			"GroupId": "",
+			"Name": "右眉　角度"
+		},
+		{
+			"Id": "ParamBrowLForm",
+			"GroupId": "",
+			"Name": "左眉　変形"
+		},
+		{
+			"Id": "ParamBrowRForm",
+			"GroupId": "",
+			"Name": "右眉　変形"
+		},
+		{
+			"Id": "ParamMouthForm",
+			"GroupId": "",
+			"Name": "嘴部　变形"
+		},
+		{
+			"Id": "ParamMouthOpenY",
+			"GroupId": "",
+			"Name": "嘴巴　张开和闭合"
+		},
+		{
+			"Id": "ParamCheek",
+			"GroupId": "",
+			"Name": "脸颊"
+		},
+		{
+			"Id": "ParamBodyAngleX",
+			"GroupId": "",
+			"Name": "身体旋转　X"
+		},
+		{
+			"Id": "ParamBodyAngleY",
+			"GroupId": "",
+			"Name": "身体旋转　Y"
+		},
+		{
+			"Id": "Param41",
+			"GroupId": "",
+			"Name": "1"
+		},
+		{
+			"Id": "Param43",
+			"GroupId": "",
+			"Name": "2"
+		},
+		{
+			"Id": "Param46",
+			"GroupId": "",
+			"Name": "9"
+		},
+		{
+			"Id": "Param47",
+			"GroupId": "",
+			"Name": "10"
+		},
+		{
+			"Id": "Param57",
+			"GroupId": "",
+			"Name": "fz"
+		},
+		{
+			"Id": "ParamBodyAngleZ",
+			"GroupId": "",
+			"Name": "身体旋转　Z"
+		},
+		{
+			"Id": "ParamBreath",
+			"GroupId": "",
+			"Name": "呼吸"
+		},
+		{
+			"Id": "ParamHairFront",
+			"GroupId": "",
+			"Name": "摇动　前发"
+		},
+		{
+			"Id": "ParamHairSide",
+			"GroupId": "",
+			"Name": "摇动　侧发"
+		},
+		{
+			"Id": "Param13",
+			"GroupId": "",
+			"Name": "hf"
+		},
+		{
+			"Id": "ParamHairBack",
+			"GroupId": "",
+			"Name": "摇动　后发"
+		},
+		{
+			"Id": "Param_Angle_Rotation_1_ArtMesh103",
+			"GroupId": "ParamGroup2",
+			"Name": "[0]ﾗｰﾊﾎ"
+		},
+		{
+			"Id": "Param_Angle_Rotation_2_ArtMesh103",
+			"GroupId": "ParamGroup2",
+			"Name": "[1]ﾗｰﾊﾎ"
+		},
+		{
+			"Id": "Param_Angle_Rotation_3_ArtMesh103",
+			"GroupId": "ParamGroup2",
+			"Name": "[2]ﾗｰﾊﾎ"
+		},
+		{
+			"Id": "Param_Angle_Rotation_4_ArtMesh103",
+			"GroupId": "ParamGroup2",
+			"Name": "[3]ﾗｰﾊﾎ"
+		},
+		{
+			"Id": "Param_Angle_Rotation_5_ArtMesh103",
+			"GroupId": "ParamGroup2",
+			"Name": "[4]ﾗｰﾊﾎ"
+		},
+		{
+			"Id": "Param_Angle_Rotation_6_ArtMesh103",
+			"GroupId": "ParamGroup2",
+			"Name": "[5]ﾗｰﾊﾎ"
+		},
+		{
+			"Id": "Param_Angle_Rotation_7_ArtMesh103",
+			"GroupId": "ParamGroup2",
+			"Name": "[6]ﾗｰﾊﾎ"
+		}
+	],
+	"ParameterGroups": [
+		{
+			"Id": "ParamGroup",
+			"GroupId": "",
+			"Name": "wl"
+		},
+		{
+			"Id": "ParamGroup2",
+			"GroupId": "",
+			"Name": "ﾗｰﾊﾎ"
+		}
+	],
+	"Parts": [
+		{
+			"Id": "Part39",
+			"Name": "狼.psd"
+		},
+		{
+			"Id": "Part",
+			"Name": "ﾍｼｲ聆�3"
+		},
+		{
+			"Id": "Part32",
+			"Name": "2.psd"
+		},
+		{
+			"Id": "Part2",
+			"Name": "ﾑﾛｾｦﾗ�ｰﾍ"
+		},
+		{
+			"Id": "Part10",
+			"Name": "ﾍｷｷ｢｡､ﾇｰ"
+		},
+		{
+			"Id": "Part12",
+			"Name": "ﾍ篶ﾗ"
+		},
+		{
+			"Id": "Part13",
+			"Name": "ﾓﾒﾊﾖﾉﾏ"
+		},
+		{
+			"Id": "Part14",
+			"Name": "ｶ�ｶ�"
+		},
+		{
+			"Id": "Part16",
+			"Name": "ﾈｹﾗﾓ"
+		},
+		{
+			"Id": "Part21",
+			"Name": "ﾍｷ"
+		},
+		{
+			"Id": "Part25",
+			"Name": "ﾋﾄﾖｫ"
+		},
+		{
+			"Id": "Part26",
+			"Name": "ﾍﾏﾎｲ"
+		},
+		{
+			"Id": "Part29",
+			"Name": "ｺ�ｷ｢"
+		},
+		{
+			"Id": "Part3",
+			"Name": "ｱ�ﾇ�"
+		},
+		{
+			"Id": "Part6",
+			"Name": "ﾃｼﾃｫ"
+		},
+		{
+			"Id": "Part7",
+			"Name": "ﾗ�ｰﾍ"
+		},
+		{
+			"Id": "Part8",
+			"Name": "ﾓﾒﾑﾛ"
+		},
+		{
+			"Id": "Part11",
+			"Name": "ﾁ�ｺ｣"
+		},
+		{
+			"Id": "Part9",
+			"Name": "ﾗ�ﾑﾛ"
+		},
+		{
+			"Id": "Part15",
+			"Name": "ｶ�ｶ�"
+		},
+		{
+			"Id": "Part38",
+			"Name": "新建画布1-=。.psd"
+		},
+		{
+			"Id": "Part18",
+			"Name": "2"
+		},
+		{
+			"Id": "Part37",
+			"Name": "新建画布1-==111.psd"
+		},
+		{
+			"Id": "Part19",
+			"Name": "1"
+		},
+		{
+			"Id": "Part20",
+			"Name": "ﾈｹｳﾅ4"
+		},
+		{
+			"Id": "Part22",
+			"Name": "ｱﾇﾗﾓ"
+		},
+		{
+			"Id": "fz",
+			"Name": "fz"
+		},
+		{
+			"Id": "ys",
+			"Name": "ys"
+		},
+		{
+			"Id": "zs",
+			"Name": "zs"
+		},
+		{
+			"Id": "Part27",
+			"Name": "ﾓﾒ"
+		},
+		{
+			"Id": "Part28",
+			"Name": "ﾗ�"
+		},
+		{
+			"Id": "Part30",
+			"Name": "ｺ�ｷ｢2"
+		},
+		{
+			"Id": "wb",
+			"Name": "wb"
+		},
+		{
+			"Id": "Part4",
+			"Name": "ｱ�ﾇ�1"
+		},
+		{
+			"Id": "Part5",
+			"Name": "ｱ�ﾇ�2"
+		},
+		{
+			"Id": "ze",
+			"Name": "ze"
+		},
+		{
+			"Id": "Part23",
+			"Name": "ﾁｳ"
+		},
+		{
+			"Id": "Part17",
+			"Name": "ﾁ�ﾗﾓ+ﾁ�ｽ�"
+		},
+		{
+			"Id": "Part36",
+			"Name": "1"
+		},
+		{
+			"Id": "Part34",
+			"Name": "新建画布1-==22.psd"
+		},
+		{
+			"Id": "y",
+			"Name": "y"
+		},
+		{
+			"Id": "z",
+			"Name": "z"
+		},
+		{
+			"Id": "Part31",
+			"Name": "ｺ�"
+		},
+		{
+			"Id": "ArtMesh103_Skinning",
+			"Name": "ﾗｰﾊﾎ(蒙皮)"
+		},
+		{
+			"Id": "Part35",
+			"Name": "ﾗｰﾊﾎ(回转)"
+		},
+		{
+			"Id": "Part24",
+			"Name": "ｲｱﾗﾓ"
+		},
+		{
+			"Id": "Part33",
+			"Name": "ﾋﾄﾖｫ"
+		},
+		{
+			"Id": "zt",
+			"Name": "zt"
+		}
+	]
+}
