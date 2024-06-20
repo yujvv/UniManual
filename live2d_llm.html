@@ -652,7 +652,6 @@
           throw new Error('Network response was not ok');
         }
 
-        console.log("Call LLM done___");
         const textStream = response.body;
         await processText(textStream);
       };
