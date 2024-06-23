@@ -21,11 +21,16 @@ rag_processor = RagInterface('demo.docx', 'index0', './index')
 auth_key = os.getenv('DEEPL_KEY')
 translator = deepl.Translator(auth_key)
 
+# templates = {
+#     'ZH': '请扮演一个智能助手，基于背景，使用中文，简练且严谨地回答问题。',
+#     'JA': '背景に基づいて、日本語を使用して、簡潔かつ正確に質問に答えるインテリジェントアシスタントを演じてください。',
+#     'EN': 'Please act as an intelligent assistant, using English, and answer questions concisely and accurately based on the background.'
+# }
 
 templates = {
-    'ZH': '请扮演一个智能助手，基于背景，使用中文，简练且严谨地回答问题。',
-    'JA': '背景に基づいて、日本語を使用して、簡潔かつ正確に質問に答えるインテリジェントアシスタントを演じてください。',
-    'EN': 'Please act as an intelligent assistant, using English, and answer questions concisely and accurately based on the background.'
+    'ZH': '请扮演一个智能助手，基于背景，使用中文，简练且严谨地回答问题，同时表达丰富的情感。',
+    'JA': '背景に基づいて、日本語を使用して、簡潔かつ正確に質問に答えるインテリジェントアシスタントを演じてください。回答には感情豊かに表現してください。',
+    'EN': 'Please act as an intelligent assistant, using English, and answer questions concisely and accurately based on the background, expressing rich emotions.'
 }
 
 folder_path = "../extracted_images"
