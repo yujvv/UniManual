@@ -366,7 +366,15 @@
       happyBtn.addEventListener('click', () => triggerExpression('Happy'));
       panicBtn.addEventListener('click', () => triggerExpression('Panic'));
 
-
+      // 重置表情到默认状态
+      function resetExpression() {
+        if (model4) {
+          model4.expression();
+          console.log('Expression reset to default.');
+        } else {
+          console.log('Live2D model not loaded.');
+        }
+      }
       // 表情会随着音频播放完成而回到默认,考虑对此进行控制
       function triggerExpression(expressionName) {
         if (model4) {
@@ -587,7 +595,7 @@
 
         // language
         // The language of the input audio. Supplying the input language in ISO-639-1 format will improve accuracy and latency.
-        
+
         // prompt - https://platform.openai.com/docs/guides/speech-to-text/prompting
         // An optional text to guide the model's style or continue a previous audio segment. The prompt should match the audio language.
 
@@ -694,10 +702,61 @@
           } else {
             if (chunk.trim() !== '') {
               await handleTextChunk(chunk.trim());
+              // 这样处理会迅速切换表情然后结束
+              // await handleStreamAndSwitchExpression(chunk.trim());
             }
           }
         }
       };
+
+      // 处理流数据并切换表情 - 通过embedding模型处理表情注释并使用相似性搜索来实现感情分析
+      async function switchExpression(chunk) {
+        try {
+          const response = await fetch('http://localhost:8080/get_action', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ chunk: chunk })
+          });
+
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+
+          // const actionIndex = await response.json();
+
+          const data = await response.json();
+          const actionIndex = data.action;
+
+          console.log('Received action:', actionIndex);
+
+          switch (actionIndex) {
+            case 0:
+              resetExpression();
+              break;
+            case 1:
+              triggerExpression('Tear');
+              break;
+            case 2:
+              triggerExpression('Angry');
+              break;
+            case 3:
+              triggerExpression('Despair');
+              break;
+            case 4:
+              triggerExpression('Happy');
+              break;
+            case 5:
+              triggerExpression('Panic');
+              break;
+            default:
+              console.log('Unknown action index:', actionIndex);
+          }
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      }
 
       let audioQueue = [];
       let isPlaying = false;
@@ -717,7 +776,8 @@
 
         const audioUrl = await synthesizeAudio(text);
         if (audioUrl !== null) {
-          audioQueue.push(audioUrl);
+          // audioQueue.push(audioUrl);
+          audioQueue.push({ url: audioUrl, text: text });
           if (!isPlaying) {
             playNextAudio(model4);
           }
@@ -744,19 +804,27 @@
         });
       };
 
-      const playNextAudio = (model) => {
+      // const playNextAudio = (model) => {
+      const playNextAudio = async (model) => {
         if (audioQueue.length === 0) {
           isPlaying = false;
           return;
         }
 
         isPlaying = true;
-        const audioUrl = audioQueue.shift();
+        // const audioUrl = audioQueue.shift();
 
+        const { url: audioUrl, text } = audioQueue.shift();
+
+        // 在音频开始播放前切换表情
+        await switchExpression(text);
         // const audio = new Audio(audioUrl);
 
         talk(model, audioUrl, () => {
           console.log('Audio finished');
+
+          // 在音频结束后重置表情
+          // resetExpression();
 
           setTimeout(() => {
             playNextAudio(model);

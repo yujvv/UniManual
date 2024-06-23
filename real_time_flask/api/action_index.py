@@ -56,7 +56,8 @@ class ActionSemanticRetriever:
 
         return relevant_actions
 
-# 示例用法
+# 通过embedding模型处理表情注释并使用相似性搜索来实现感情分析
+
 # actions_semantics = {
 #     1: [
 #         "这一点需要特别强调和解释。",
