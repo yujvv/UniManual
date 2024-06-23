@@ -582,6 +582,14 @@
           },
           body: formData
         });
+        // model
+        // ID of the model to use. Only whisper-1 (which is powered by our open source Whisper V2 model) is currently available.
+
+        // language
+        // The language of the input audio. Supplying the input language in ISO-639-1 format will improve accuracy and latency.
+        
+        // prompt - https://platform.openai.com/docs/guides/speech-to-text/prompting
+        // An optional text to guide the model's style or continue a previous audio segment. The prompt should match the audio language.
 
         if (!response.ok) {
           throw new Error('Network response was not ok');
