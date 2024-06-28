@@ -16,7 +16,7 @@ CORS(app)
 api_key = os.getenv('OPENAI_KEY')
 client = OpenAI(api_key=api_key)
 cutter = TextCutter(min_chars=11)
-rag_processor = RagInterface('demo.docx', 'index0', './index')
+rag_processor = RagInterface('M9Z.docx', 'index_car', './index')
 
 auth_key = os.getenv('DEEPL_KEY')
 translator = deepl.Translator(auth_key)
@@ -86,7 +86,7 @@ def process_audio():
     prompt, title = rag_processor.process_input(transcription, language)
     
     if title not in image_list:
-        print("__________", image_list)
+        # print("__________", image_list)
         title = 'N'
     
     def response_stream():
@@ -181,7 +181,7 @@ def get_action():
     for action, semantic, score in relevant_actions:
         print(f'Action: {action}, Semantic: {semantic}, Score: {score}')
 
-    if not relevant_actions or relevant_actions[0][2] < 0.3:
+    if not relevant_actions or relevant_actions[0][2] < 0.30:
         return jsonify({"action": 0}), 200
     
     # 只返回动作编号，不包含分数
