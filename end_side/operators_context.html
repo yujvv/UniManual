@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000">
+    <!-- 背景 -->
+    <rect width="800" height="1000" fill="#f0f0f0"/>
+    
+    <!-- 标题 -->
+    <text x="400" y="30" text-anchor="middle" font-size="24" font-weight="bold">融合算子详细说明</text>
+  
+    <!-- SkipLayerNormalization -->
+    <g transform="translate(50, 60)">
+      <rect width="700" height="280" fill="#ffe6e6" rx="10"/>
+      <text x="350" y="30" text-anchor="middle" font-size="20" font-weight="bold">SkipLayerNormalization</text>
+      <text x="20" y="60" font-size="14">
+        <tspan x="20" dy="1.2em">输入: x (主输入), y (skip连接输入)</tspan>
+        <tspan x="20" dy="1.2em">输出: z = LayerNorm(x + y)</tspan>
+        <tspan x="20" dy="1.2em">数学表达式: z = γ * (x + y - μ) / √(σ² + ε) + β</tspan>
+        <tspan x="20" dy="1.2em">其中, μ 是均值, σ 是标准差, γ 和 β 是可学习参数, ε 是小常数</tspan>
+      </text>
+      <text x="20" y="140" font-size="14">
+        <tspan x="20" dy="1.2em">应用: 在Transformer模型中广泛使用,如BERT的每个子层输出</tspan>
+        <tspan x="20" dy="1.2em">优势: 1. 结合残差连接和归一化,稳定深度网络训练</tspan>
+        <tspan x="20" dy="1.2em">      2. 减少内存访问和计算延迟</tspan>
+        <tspan x="20" dy="1.2em">      3. 有助于缓解梯度消失问题</tspan>
+      </text>
+      <!-- 简化的SkipLayerNorm示意图 -->
+      <path d="M50,220 L150,220 L150,240 L250,240" fill="none" stroke="#000" stroke-width="2"/>
+      <rect x="250" y="210" width="100" height="60" fill="#ff9999" rx="5"/>
+      <text x="300" y="245" text-anchor="middle" font-size="14">LayerNorm</text>
+      <path d="M350,240 L450,240" fill="none" stroke="#000" stroke-width="2"/>
+      <circle cx="200" cy="240" r="10" fill="#fff" stroke="#000" stroke-width="2"/>
+      <text x="200" y="245" text-anchor="middle" font-size="14">+</text>
+    </g>
+  
+    <!-- FusedMatMul -->
+    <g transform="translate(50, 380)">
+      <rect width="700" height="280" fill="#e6ffe6" rx="10"/>
+      <text x="350" y="30" text-anchor="middle" font-size="20" font-weight="bold">FusedMatMul</text>
+      <text x="20" y="60" font-size="14">
+        <tspan x="20" dy="1.2em">输入: A (矩阵1), B (矩阵2), C (偏置)</tspan>
+        <tspan x="20" dy="1.2em">输出: Y = AB + C</tspan>
+        <tspan x="20" dy="1.2em">数学表达式: Y[i,j] = Σ(A[i,k] * B[k,j]) + C[j]</tspan>
+        <tspan x="20" dy="1.2em">其中, i, j, k 是矩阵的索引</tspan>
+      </text>
+      <text x="20" y="140" font-size="14">
+        <tspan x="20" dy="1.2em">应用: 神经网络中的全连接层,注意力机制中的矩阵运算</tspan>
+        <tspan x="20" dy="1.2em">优势: 1. 减少内存带宽使用,避免存储中间结果</tspan>
+        <tspan x="20" dy="1.2em">      2. 提高计算效率,特别是在GPU等并行计算设备上</tspan>
+        <tspan x="20" dy="1.2em">      3. 可能启用硬件级优化</tspan>
+      </text>
+      <!-- 简化的FusedMatMul示意图 -->
+      <rect x="50" y="210" width="80" height="60" fill="#99ff99" rx="5"/>
+      <text x="90" y="245" text-anchor="middle" font-size="14">A</text>
+      <rect x="150" y="210" width="80" height="60" fill="#99ff99" rx="5"/>
+      <text x="190" y="245" text-anchor="middle" font-size="14">B</text>
+      <path d="M130,240 L150,240" fill="none" stroke="#000" stroke-width="2"/>
+      <rect x="250" y="210" width="100" height="60" fill="#ff9999" rx="5"/>
+      <text x="300" y="245" text-anchor="middle" font-size="14">MatMul</text>
+      <path d="M350,240 L370,240" fill="none" stroke="#000" stroke-width="2"/>
+      <circle cx="390" cy="240" r="10" fill="#fff" stroke="#000" stroke-width="2"/>
+      <text x="390" y="245" text-anchor="middle" font-size="14">+</text>
+      <path d="M400,240 L450,240" fill="none" stroke="#000" stroke-width="2"/>
+      <rect x="370" y="190" width="40" height="30" fill="#9999ff" rx="5"/>
+      <text x="390" y="210" text-anchor="middle" font-size="12">C</text>
+      <path d="M390,220 L390,230" fill="none" stroke="#000" stroke-width="2"/>
+    </g>
+  
+    <!-- BiasGeLU -->
+    <g transform="translate(50, 700)">
+      <rect width="700" height="280" fill="#e6e6ff" rx="10"/>
+      <text x="350" y="30" text-anchor="middle" font-size="20" font-weight="bold">BiasGeLU</text>
+      <text x="20" y="60" font-size="14">
+        <tspan x="20" dy="1.2em">输入: x (主输入), b (偏置)</tspan>
+        <tspan x="20" dy="1.2em">输出: y = GeLU(x + b)</tspan>
+        <tspan x="20" dy="1.2em">数学表达式: y = 0.5(x+b) * (1 + tanh(√(2/π) * (x+b + 0.044715 * (x+b)³)))</tspan>
+      </text>
+      <text x="20" y="140" font-size="14">
+        <tspan x="20" dy="1.2em">应用: BERT, GPT等Transformer模型中的激活函数</tspan>
+        <tspan x="20" dy="1.2em">优势: 1. 结合偏置加法和激活函数,减少计算步骤</tspan>
+        <tspan x="20" dy="1.2em">      2. GeLU相比ReLU在某些任务上表现更好</tspan>
+        <tspan x="20" dy="1.2em">      3. 在语言模型中广泛使用,有助于捕捉复杂的语言特征</tspan>
+      </text>
+      <!-- 简化的BiasGeLU示意图 -->
+      <rect x="50" y="210" width="80" height="60" fill="#99ff99" rx="5"/>
+      <text x="90" y="245" text-anchor="middle" font-size="14">x</text>
+      <path d="M130,240 L150,240" fill="none" stroke="#000" stroke-width="2"/>
+      <circle cx="170" cy="240" r="10" fill="#fff" stroke="#000" stroke-width="2"/>
+      <text x="170" y="245" text-anchor="middle" font-size="14">+</text>
+      <rect x="150" y="190" width="40" height="30" fill="#9999ff" rx="5"/>
+      <text x="170" y="210" text-anchor="middle" font-size="12">b</text>
+      <path d="M170,220 L170,230" fill="none" stroke="#000" stroke-width="2"/>
+      <path d="M180,240 L250,240" fill="none" stroke="#000" stroke-width="2"/>
+      <rect x="250" y="210" width="100" height="60" fill="#ff9999" rx="5"/>
+      <text x="300" y="245" text-anchor="middle" font-size="14">GeLU</text>
+      <path d="M350,240 L450,240" fill="none" stroke="#000" stroke-width="2"/>
+    </g>
+  </svg>

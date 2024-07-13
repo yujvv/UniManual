@@ -142,9 +142,10 @@
     <br />
     <label>语言选择</label>
     <select id="languageSelect">
-      <option value="ZH">中文</option>
-      <option value="JA">日本語</option>
-      <option value="EN">English</option>
+      <!-- ISO-639-1 代码 -->
+      <option value="zh">中文</option>
+      <option value="ja">日本語</option>
+      <option value="en">English</option>
     </select>
     <button id="languageUpdate">更新语言</button>
     <br />
@@ -275,15 +276,15 @@
         const selectedLanguage = languageSelect.value;
 
         switch (selectedLanguage) {
-          case 'ZH':
+          case 'zh':
             speechConfig.speechSynthesisLanguage = 'zh-CN';
             speechConfig.speechSynthesisVoiceName = 'zh-CN-XiaoxiaoNeural';
             break;
-          case 'JA':
+          case 'ja':
             speechConfig.speechSynthesisLanguage = 'ja-JP';
             speechConfig.speechSynthesisVoiceName = 'ja-JP-NanamiNeural';
             break;
-          case 'EN':
+          case 'en':
             speechConfig.speechSynthesisLanguage = 'en-US';
             speechConfig.speechSynthesisVoiceName = 'en-US-JennyNeural';
             break;
@@ -541,6 +542,22 @@
       //   }
       // });
 
+      // 定义一个函数，用于打印时间戳
+      function printTimestamp() {
+        // 获取当前时间的Date对象
+        var currentDate = new Date();
+
+        // 获取时间戳（毫秒）
+        var timestamp = currentDate.getTime();
+
+        // 格式化为人类可读的字符串
+        var formattedDate = currentDate.toLocaleString();
+
+        // 在控制台中打印时间戳和格式化日期
+        console.log('时间戳（毫秒）：' + timestamp);
+        console.log('格式化日期：' + formattedDate);
+      }
+
       // Voice activity detection
       let myvad;
       let isVadActive = false;
@@ -548,7 +565,7 @@
 
       // // 在初始化ONNX Runtime之前设置抑制未使用的初始化器警告
       // ort.env.logLevel = 'error';
-      
+
       // 初始化VAD - https://github.com/ricky0123/vad
       // const options = {
       //   sampleRate: 16000, // Sample rate of input audio
@@ -584,14 +601,28 @@
           },
           onSpeechEnd: (audio) => {
             console.log("Speech end detected");
+            printTimestamp()
             isSpeaking = false;
 
             // console.log("Audio data received:");
             // console.log("Is Float32Array?", audio instanceof Float32Array);
             // console.log("Length:", audio.length);
 
+            const wavBuffer = encodeWAV(audio)
+            // const base64 = arrayBufferToBase64(wavBuffer)
+            // const url = `data:audio/wav;base64,${base64}`
+            const wavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
+            const wavFile = new File([wavBlob], 'audio.wav', { type: 'audio/wav' });
+
             if (audio && audio.length > 0) {
-              handleAudioData(audio, sampleRate);
+              transcribeAudio(wavFile)
+                .then(text => {
+                  console.log("Transcription result:", text);
+                  getText(text);
+                })
+                .catch(error => {
+                  console.error('Audio transcription error:', error);
+                });
             } else {
               console.warn("Received empty audio data");
             }
@@ -600,6 +631,79 @@
             console.log("VAD misfire");
           }
         });
+      }
+
+      function encodeWAV(samples, format = 3, sampleRate = 16000, numChannels = 1, bitDepth = 32) {
+        var bytesPerSample = bitDepth / 8;
+        var blockAlign = numChannels * bytesPerSample;
+        var buffer = new ArrayBuffer(44 + samples.length * bytesPerSample);
+        var view = new DataView(buffer);
+
+        /* RIFF identifier */
+        writeString(view, 0, "RIFF");
+        /* RIFF chunk length */
+        view.setUint32(4, 36 + samples.length * bytesPerSample, true);
+        /* RIFF type */
+        writeString(view, 8, "WAVE");
+        /* format chunk identifier */
+        writeString(view, 12, "fmt ");
+        /* format chunk length */
+        view.setUint32(16, 16, true);
+        /* sample format (raw) */
+        view.setUint16(20, format, true);
+        /* channel count */
+        view.setUint16(22, numChannels, true);
+        /* sample rate */
+        view.setUint32(24, sampleRate, true);
+        /* byte rate (sample rate * block align) */
+        view.setUint32(28, sampleRate * blockAlign, true);
+        /* block align (channel count * bytes per sample) */
+        view.setUint16(32, blockAlign, true);
+        /* bits per sample */
+        view.setUint16(34, bitDepth, true);
+        /* data chunk identifier */
+        writeString(view, 36, "data");
+        /* data chunk length */
+        view.setUint32(40, samples.length * bytesPerSample, true);
+
+        if (format === 1) {
+          // Raw PCM
+          floatTo16BitPCM(view, 44, samples);
+        } else {
+          writeFloat32(view, 44, samples);
+        }
+
+        return buffer;
+      }
+
+      function arrayBufferToBase64(buffer) {
+        var binary = "";
+        var bytes = new Uint8Array(buffer);
+        var len = bytes.byteLength;
+        for (var i = 0; i < len; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+      }
+
+      // Helper functions
+      function writeString(view, offset, string) {
+        for (var i = 0; i < string.length; i++) {
+          view.setUint8(offset + i, string.charCodeAt(i));
+        }
+      }
+
+      function writeFloat32(output, offset, input) {
+        for (var i = 0; i < input.length; i++, offset += 4) {
+          output.setFloat32(offset, input[i], true);
+        }
+      }
+
+      function floatTo16BitPCM(output, offset, input) {
+        for (var i = 0; i < input.length; i++, offset += 2) {
+          var s = Math.max(-1, Math.min(1, input[i]));
+          output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+        }
       }
 
       // 启动VAD
@@ -625,114 +729,14 @@
           console.log("VAD stopped");
           if (isSpeaking) {
             isSpeaking = false;
-            if (audioChunks.length > 0) {
-              const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-              handleAudioData(audioBlob);
-            }
+            // if (audioChunks.length > 0) {
+            //   const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            //   handleAudioData(audioBlob);
+            // }
           }
         }
       }
 
-      // 处理文件，VAD录音得到的是Float32Array格式，需要转为wav给API
-      // function handleAudioData(audio, sampleRate) {
-      //   if (!(audio instanceof Float32Array)) {
-      //     console.error("Unexpected audio format. Expected Float32Array.");
-      //     return;
-      //   }
-
-      //   console.log("Processing audio with sample rate:", sampleRate);
-
-      //   // 直接将 Float32Array 转换为 Blob
-      //   // const audioBlob = new Blob([audio.buffer], { type: 'audio/wav' });
-      //   // const audioFile = new File([audioBlob], 'audio.wav', { type: 'audio/wav' });
-
-      //   // 将 Float32Array 转换为 Blob
-      //   const audioBlob = new Blob([audio.buffer], { type: 'audio/webm' });
-      //   const audioFile = new File([audioBlob], 'audio.webm', { type: 'audio/webm' });
-      //   console.log("Audio file size:", audioFile.size, "bytes");
-
-      //   transcribeAudio(audioFile)
-      //     .then(text => {
-      //       console.log("Transcription result:", text);
-      //       getText(text);
-      //     })
-      //     .catch(error => {
-      //       console.error('Audio transcription error:', error);
-      //     });
-      // }
-
-
-      // Function to convert Float32Array to WAV Blob
-      function handleAudioData(audio, sampleRate) {
-        console.log("Processing audio with sample rate:", sampleRate);
-
-        // Ensure we're working with a Float32Array
-        if (!(audio instanceof Float32Array)) {
-          console.error("Unexpected audio format. Expected Float32Array.");
-          return;
-        }
-
-        // Create WAV file
-        const wavBlob = createWavFile(audio, sampleRate);
-
-        console.log("Audio file size:", wavBlob.size, "bytes");
-        console.log("Audio file type:", wavBlob.type);
-
-        // Convert Blob to File
-        const wavFile = new File([wavBlob], 'audio.wav', { type: 'audio/wav' });
-
-        transcribeAudio(wavFile)
-          .then(text => {
-            console.log("Transcription result:", text);
-            getText(text);
-          })
-          .catch(error => {
-            console.error('Audio transcription error:', error);
-          });
-      }
-      function createWavFile(audioData, sampleRate) {
-        const numChannels = 1; // Mono audio
-        const bitsPerSample = 16;
-        const bytesPerSample = bitsPerSample / 8;
-        const blockAlign = numChannels * bytesPerSample;
-        const byteRate = sampleRate * blockAlign;
-        const dataSize = audioData.length * bytesPerSample;
-        const buffer = new ArrayBuffer(44 + dataSize);
-        const view = new DataView(buffer);
-
-        // WAV header
-        writeString(view, 0, 'RIFF');
-        view.setUint32(4, 36 + dataSize, true);
-        writeString(view, 8, 'WAVE');
-        writeString(view, 12, 'fmt ');
-        view.setUint32(16, 16, true);
-        view.setUint16(20, 1, true);
-        view.setUint16(22, numChannels, true);
-        view.setUint32(24, sampleRate, true);
-        view.setUint32(28, byteRate, true);
-        view.setUint16(32, blockAlign, true);
-        view.setUint16(34, bitsPerSample, true);
-        writeString(view, 36, 'data');
-        view.setUint32(40, dataSize, true);
-
-        // Write audio data
-        floatTo16BitPCM(view, 44, audioData);
-
-        return new Blob([buffer], { type: 'audio/wav' });
-      }
-
-      function writeString(view, offset, string) {
-        for (let i = 0; i < string.length; i++) {
-          view.setUint8(offset + i, string.charCodeAt(i));
-        }
-      }
-
-      function floatTo16BitPCM(output, offset, input) {
-        for (let i = 0; i < input.length; i++, offset += 2) {
-          const s = Math.max(-1, Math.min(1, input[i]));
-          output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-        }
-      }
       // 初始化VAD ___________________________
       await initVAD();
 
@@ -816,7 +820,10 @@
 
         formData.append('file', audioFile);
         formData.append('model', 'whisper-1');
-
+        // 传语言类型
+        const languageSelect = document.getElementById('languageSelect');
+        const selectedLanguage = languageSelect.value;
+        formData.append('language', selectedLanguage);
 
         const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
           method: 'POST',
@@ -895,6 +902,13 @@
         // 在发送请求之前清空文本框
         const textBox = document.querySelector('.text-box p');
         textBox.textContent = '';
+
+        // Set default image
+        const imageElement = document.getElementById('image-to-update');
+        if (imageElement) {
+          imageElement.src = 'logo.png';
+          imageElement.alt = '预设图片';
+        }
 
         const response = await fetch('http://localhost:8080/process_text', {
           method: 'POST',
@@ -1013,8 +1027,9 @@
         textBox.textContent += text;
 
         const model4 = PIXI.live2d.models[0];
-
         const audioUrl = await synthesizeAudio(text);
+        console.log("Play audio___")
+        printTimestamp()
         if (audioUrl !== null) {
           // audioQueue.push(audioUrl);
           audioQueue.push({ url: audioUrl, text: text });

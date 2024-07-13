@@ -22,15 +22,15 @@ auth_key = os.getenv('DEEPL_KEY')
 translator = deepl.Translator(auth_key)
 
 # templates = {
-#     'ZH': '请扮演一个智能助手，基于背景，使用中文，简练且严谨地回答问题。',
-#     'JA': '背景に基づいて、日本語を使用して、簡潔かつ正確に質問に答えるインテリジェントアシスタントを演じてください。',
-#     'EN': 'Please act as an intelligent assistant, using English, and answer questions concisely and accurately based on the background.'
+#     'zh': '请扮演一个智能助手，基于背景，使用中文，简练且严谨地回答问题。',
+#     'ja': '背景に基づいて、日本語を使用して、簡潔かつ正確に質問に答えるインテリジェントアシスタントを演じてください。',
+#     'en': 'Please act as an intelligent assistant, using English, and answer questions concisely and accurately based on the background.'
 # }
 
 templates = {
-    'ZH': '请扮演一个智能助手，基于背景，使用中文，简练且严谨地回答问题，同时表达丰富的情感。',
-    'JA': '背景に基づいて、日本語を使用して、簡潔かつ正確に質問に答えるインテリジェントアシスタントを演じてください。回答には感情豊かに表現してください。',
-    'EN': 'Please act as an intelligent assistant, using English, and answer questions concisely and accurately based on the background, expressing rich emotions.'
+    'zh': '请扮演一个智能助手，基于背景，使用中文，简练且严谨地回答问题，同时表达丰富的情感。',
+    'ja': '背景に基づいて、日本語を使用して、簡潔かつ正確に質問に答えるインテリジェントアシスタントを演じてください。回答には感情豊かに表現してください。',
+    'en': 'Please act as an intelligent assistant, using English, and answer questions concisely and accurately based on the background, expressing rich emotions.'
 }
 
 folder_path = "../extracted_images"
@@ -73,7 +73,7 @@ def process_audio():
     
     # 如果DeepL速度慢，可以考虑换ASR模型直接翻译
     language = request.form['language']
-    main_lang = "ZH"
+    main_lang = "zh"
     if language != main_lang:
         translation_result = translator.translate_text(transcription, target_lang=main_lang)
         print("Translated Transcript:", translation_result.text)
