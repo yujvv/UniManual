@@ -18,7 +18,7 @@
   <!-- <script src="https://unpkg.com/wavesurfer.js"></script> -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.0/lame.min.js"></script>
   <!-- Hotword Detection -->
-  <script src="//cdnjs.cloudflare.com/ajax/libs/annyang/2.6.1/annyang.min.js"></script>
+  <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/annyang/2.6.1/annyang.min.js"></script> -->
 </head>
 
 <body>
@@ -172,109 +172,6 @@
   </div>
 
   <script type="text/javascript">
-    // Hotword Detection
-    // 页面加载时，默认使用英语。可以说 "Hey assistant" 来唤醒系统。
-    // 要停止系统监听，说 "Stop listening"。
-    // 要切换到中文，说 "Switch to Chinese"。然后可以用 "你好助手" 来唤醒系统，用 "停止听取" 来停止。
-    // 要切换到日语，说 "Switch to Japanese"。然后可以用 "こんにちは アシスタント" 来唤醒系统，用 "聞くのをやめて" 来停止。
-    // 可以随时说 "Switch to English" 来切换回英语。
-    if (annyang) {
-      console.log("Annyang is available!");
-
-      // Define wake-up words and stop commands in different languages
-      const commands = {
-        'en': {
-          wake: 'hey assistant',
-          stop: 'stop listening'
-        },
-        'zh-CN': {
-          wake: '你好助手',
-          stop: '停止听取'
-        },
-        'ja': {
-          wake: 'こんにちは アシスタント',
-          stop: '聞くのをやめて'
-        }
-      };
-
-      let isAwake = false;
-      let currentLanguage = 'en';
-
-      // Function to handle wake-up
-      function handleWakeUp() {
-        isAwake = true;
-        console.log(`Wake-up word detected in ${currentLanguage}! System is now awake.`);
-        console.log('Listening for commands...');
-      }
-
-      // Function to handle stop command
-      function handleStop() {
-        isAwake = false;
-        console.log('Stop command received. System is now asleep.');
-        console.log(`Say '${commands[currentLanguage].wake}' to wake up the system.`);
-      }
-
-      // Function to set up commands for a specific language
-      function setupCommandsForLanguage(lang) {
-        const langCommands = {};
-        langCommands[commands[lang].wake] = handleWakeUp;
-        langCommands[commands[lang].stop] = handleStop;
-        langCommands['*command'] = (command) => {
-          if (isAwake) {
-            console.log('Command received:', command);
-            // Here you can add your logic to handle various commands
-          }
-        };
-        annyang.removeCommands();
-        annyang.addCommands(langCommands);
-      }
-
-      // Function to set up language
-      function setupLanguage(lang) {
-        currentLanguage = lang;
-        annyang.setLanguage(lang);
-        setupCommandsForLanguage(lang);
-        console.log(`Language set to: ${lang}`);
-        console.log(`Say '${commands[lang].wake}' to wake up the system.`);
-        console.log(`Say '${commands[lang].stop}' to stop the system from listening.`);
-      }
-
-      // Add language switching commands
-      const languageSwitchCommands = {
-        'switch to Chinese': () => setupLanguage('zh-CN'),
-        'switch to Japanese': () => setupLanguage('ja'),
-        'switch to English': () => setupLanguage('en')
-      };
-
-      // Start with English
-      setupLanguage('en');
-      annyang.addCommands(languageSwitchCommands);
-
-      // Start listening
-      annyang.start({ autoRestart: true, continuous: true });
-
-      // Add debug callbacks
-      annyang.addCallback('start', function () {
-        console.log('Annyang is listening...');
-      });
-
-      annyang.addCallback('soundstart', function () {
-        console.log('Sound detected');
-      });
-
-      annyang.addCallback('result', function (phrases) {
-        console.log("Speech recognized:", phrases);
-      });
-
-      annyang.addCallback('error', function (error) {
-        console.log('Annyang error:', error);
-      });
-
-    } else {
-      console.log("Speech recognition is not supported in this browser.");
-    }
-
-
 
     $('input[name="eyes"]').click(function () {
       var radioValue = $("input[name='eyes']:checked").val();

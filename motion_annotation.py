@@ -808,7 +808,7 @@ actions_semantics = {
         "请看向左侧。",
         "左边有重要的东西。",
         "请留意左边。",
-    ],
+    ],  
     8: [
         # Guiding attention to the front: Using both hands to direct focus
         "请看前面。",
