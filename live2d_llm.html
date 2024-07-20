@@ -19,6 +19,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.0/lame.min.js"></script>
   <!-- Hotword Detection -->
   <script src="//cdnjs.cloudflare.com/ajax/libs/annyang/2.6.1/annyang.min.js"></script>
+  <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/SpeechKITT/0.3.0/speechkitt.min.js"></script> -->
 </head>
 
 <body>
@@ -178,80 +179,191 @@
     // 要切换到中文，说 "Switch to Chinese"。然后可以用 "你好助手" 来唤醒系统，用 "停止听取" 来停止。
     // 要切换到日语，说 "Switch to Japanese"。然后可以用 "こんにちは アシスタント" 来唤醒系统，用 "聞くのをやめて" 来停止。
     // 可以随时说 "Switch to English" 来切换回英语。
+
+
+    // 切换语言存在问题
+    // if (annyang) {
+    //   console.log("Annyang is available!");
+
+    //   // Define wake-up words and stop commands in different languages
+    //   const commands = {
+    //     'en': {
+    //       wake: 'hey assistant',
+    //       stop: 'stop listening'
+    //     },
+    //     'zh-CN': {
+    //       wake: '你好助手',
+    //       stop: '停止听取'
+    //     },
+    //     'ja': {
+    //       wake: 'こんにちは アシスタント',
+    //       stop: '聞くのをやめて'
+    //     }
+    //   };
+
+    //   let isAwake = false;
+    //   let currentLanguage = 'en';
+
+    //   // Function to handle wake-up
+    //   function handleWakeUp() {
+    //     isAwake = true;
+    //     console.log(`Wake-up word detected in ${currentLanguage}! System is now awake.`);
+    //     console.log('Listening for commands...');
+    //   }
+
+    //   // Function to handle stop command
+    //   function handleStop() {
+    //     isAwake = false;
+    //     console.log('Stop command received. System is now asleep.');
+    //     console.log(`Say '${commands[currentLanguage].wake}' to wake up the system.`);
+    //   }
+
+    //   // Function to set up commands for a specific language
+    //   function setupCommandsForLanguage(lang) {
+    //     const langCommands = {};
+    //     langCommands[commands[lang].wake] = handleWakeUp;
+    //     langCommands[commands[lang].stop] = handleStop;
+    //     langCommands['*command'] = (command) => {
+    //       if (isAwake) {
+    //         console.log('Command received:', command);
+    //         // Here you can add your logic to handle various commands
+    //       }
+    //     };
+    //     annyang.removeCommands();
+    //     annyang.addCommands(langCommands);
+    //   }
+
+    //   // Function to set up language
+    //   function setupLanguage(lang) {
+    //     currentLanguage = lang;
+    //     annyang.setLanguage(lang);
+    //     setupCommandsForLanguage(lang);
+    //     console.log(`Language set to: ${lang}`);
+    //     console.log(`Say '${commands[lang].wake}' to wake up the system.`);
+    //     console.log(`Say '${commands[lang].stop}' to stop the system from listening.`);
+    //   }
+
+    //   // Add language switching commands
+    //   const languageSwitchCommands = {
+    //     'switch to Chinese': () => setupLanguage('zh-CN'),
+    //     'switch to Japanese': () => setupLanguage('ja'),
+    //     'switch to English': () => setupLanguage('en')
+    //   };
+
+    //   // Start with English
+    //   setupLanguage('en');
+    //   annyang.addCommands(languageSwitchCommands);
+
+    //   // Start listening
+    //   annyang.start({ autoRestart: true, continuous: true });
+
+    //   // Add debug callbacks
+    //   annyang.addCallback('start', function () {
+    //     console.log('Annyang is listening...');
+    //   });
+
+    //   annyang.addCallback('soundstart', function () {
+    //     console.log('Sound detected');
+    //   });
+
+    //   annyang.addCallback('result', function (phrases) {
+    //     console.log("Speech recognized:", phrases);
+    //   });
+
+    //   annyang.addCallback('error', function (error) {
+    //     console.log('Annyang error:', error);
+    //     // annyang.start();
+    //   });
+
+    // } else {
+    //   console.log("Speech recognition is not supported in this browser.");
+    // }
+
+    // 业务逻辑为：wake-up唤醒vad，开始监听；go-to-sleep停止vad，完全睡眠。
+    // 想要打断使用单独的词来触发停止说话，搭配说完话才能监听的逻辑，实现操控
+
+    // 下面三个方法分别为停止音频流处理/开始vad/停止vad
+    let interruption;
+    let wakeUp;
+    let sleep;
+
+    // 现在通过关键词打断，如果不用关键词就不会打断，而讲话期间是不会接受信息的
+    // 是否要改成讲话期间只要听到声音就立刻停止？体验差，不改这个方案
+    // let alwaysInterrupting = false;
+
     if (annyang) {
       console.log("Annyang is available!");
 
-      // Define wake-up words and stop commands in different languages
+      // Define wake-up words and stop commands
       const commands = {
-        'en': {
-          wake: 'hey assistant',
-          stop: 'stop listening'
-        },
-        'zh-CN': {
-          wake: '你好助手',
-          stop: '停止听取'
-        },
-        'ja': {
-          wake: 'こんにちは アシスタント',
-          stop: '聞くのをやめて'
-        }
+        wake: ['hey assistant', 'hello assistant', 'wake up'],
+        stop: ['stop listening', 'go to sleep', 'bye assistant'],
+        other: ['what time is it', 'Listen to me', 'wait']
       };
 
       let isAwake = false;
-      let currentLanguage = 'en';
 
       // Function to handle wake-up
       function handleWakeUp() {
         isAwake = true;
-        console.log(`Wake-up word detected in ${currentLanguage}! System is now awake.`);
+        wakeUp()
+        console.log('Wake-up word detected! System is now awake.');
         console.log('Listening for commands...');
       }
 
       // Function to handle stop command
       function handleStop() {
         isAwake = false;
+        sleep()
         console.log('Stop command received. System is now asleep.');
-        console.log(`Say '${commands[currentLanguage].wake}' to wake up the system.`);
+        console.log(`Say one of the wake words (${commands.wake.join(', ')}) to wake up the system.`);
       }
 
-      // Function to set up commands for a specific language
-      function setupCommandsForLanguage(lang) {
-        const langCommands = {};
-        langCommands[commands[lang].wake] = handleWakeUp;
-        langCommands[commands[lang].stop] = handleStop;
-        langCommands['*command'] = (command) => {
-          if (isAwake) {
-            console.log('Command received:', command);
-            // Here you can add your logic to handle various commands
+      // Function to handle other commands
+      function handleOtherCommands(command) {
+        if (isAwake) {
+          console.log('Command received:', command);
+          // Here you can add your logic to handle various commands
+          switch (command) {
+            case 'what time is it':
+              console.log('The current time is ' + new Date().toLocaleTimeString());
+              break;
+            case 'Listen to me':
+              interruption()
+              // alwaysInterrupting = true;
+              console.log('Listen to me --- interruption = ture');
+              break;
+            case 'wait':
+              interruption()
+              console.log('Wait --- interruption = ture');
+              break;
+            default:
+              console.log('Command not recognized.');
           }
-        };
-        annyang.removeCommands();
-        annyang.addCommands(langCommands);
+        }
       }
 
-      // Function to set up language
-      function setupLanguage(lang) {
-        currentLanguage = lang;
-        annyang.setLanguage(lang);
-        setupCommandsForLanguage(lang);
-        console.log(`Language set to: ${lang}`);
-        console.log(`Say '${commands[lang].wake}' to wake up the system.`);
-        console.log(`Say '${commands[lang].stop}' to stop the system from listening.`);
-      }
+      // Set up commands
+      const annyangCommands = {};
+      commands.wake.forEach(wake => {
+        annyangCommands[wake] = handleWakeUp;
+      });
+      commands.stop.forEach(stop => {
+        annyangCommands[stop] = handleStop;
+      });
+      annyangCommands['*command'] = handleOtherCommands;
 
-      // Add language switching commands
-      const languageSwitchCommands = {
-        'switch to Chinese': () => setupLanguage('zh-CN'),
-        'switch to Japanese': () => setupLanguage('ja'),
-        'switch to English': () => setupLanguage('en')
-      };
+      annyang.addCommands(annyangCommands);
 
       // Start with English
-      setupLanguage('en');
-      annyang.addCommands(languageSwitchCommands);
+      annyang.setLanguage('en');
+
+      console.log(`Say one of the wake words (${commands.wake.join(', ')}) to wake up the system.`);
+      console.log(`Say one of the stop commands (${commands.stop.join(', ')}) to stop the system from listening.`);
 
       // Start listening
-      annyang.start({ autoRestart: true, continuous: true });
+      // annyang.start({ autoRestart: true, continuous: true });
+      annyang.start({ autoRestart: true, continuous: false, sampleRate: 16000 });
 
       // Add debug callbacks
       annyang.addCallback('start', function () {
@@ -273,8 +385,6 @@
     } else {
       console.log("Speech recognition is not supported in this browser.");
     }
-
-
 
     $('input[name="eyes"]').click(function () {
       var radioValue = $("input[name='eyes']:checked").val();
@@ -700,36 +810,41 @@
         myvad = await vad.MicVAD.new({
           onSpeechStart: () => {
             console.log("Speech start detected");
-            // 打断说话
-            stopAudio();
+            // // 说了wait才能打断说话
+            // if (interruption) {
+            //   stopAudio();
+            // }
             isSpeaking = true;
           },
           onSpeechEnd: (audio) => {
             console.log("Speech end detected");
             printTimestamp()
-            isSpeaking = false;
 
-            // console.log("Audio data received:");
-            // console.log("Is Float32Array?", audio instanceof Float32Array);
-            // console.log("Length:", audio.length);
+            // 播放期间不允许打断说话
+            if (!isPlaying) {
+              // console.log("Audio data received:");
+              // console.log("Is Float32Array?", audio instanceof Float32Array);
+              // console.log("Length:", audio.length);
 
-            const wavBuffer = encodeWAV(audio)
-            // const base64 = arrayBufferToBase64(wavBuffer)
-            // const url = `data:audio/wav;base64,${base64}`
-            const wavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
-            const wavFile = new File([wavBlob], 'audio.wav', { type: 'audio/wav' });
+              const wavBuffer = encodeWAV(audio)
+              // const base64 = arrayBufferToBase64(wavBuffer)
+              // const url = `data:audio/wav;base64,${base64}`
+              const wavBlob = new Blob([wavBuffer], { type: 'audio/wav' });
+              const wavFile = new File([wavBlob], 'audio.wav', { type: 'audio/wav' });
 
-            if (audio && audio.length > 0) {
-              transcribeAudio(wavFile)
-                .then(text => {
-                  console.log("Transcription result:", text);
-                  getText(text);
-                })
-                .catch(error => {
-                  console.error('Audio transcription error:', error);
-                });
-            } else {
-              console.warn("Received empty audio data");
+              // todo
+              if (audio && audio.length > 0) {
+                transcribeAudio(wavFile)
+                  .then(text => {
+                    console.log("Transcription result:", text);
+                    getText(text);
+                  })
+                  .catch(error => {
+                    console.error('Audio transcription error:', error);
+                  });
+              } else {
+                console.warn("Received empty audio data");
+              }
             }
           },
           onVADMisfire: () => {
@@ -819,6 +934,8 @@
           console.log("VAD started");
         }
       }
+      // 全局变量热词检测
+      wakeUp = startVAD;
 
       // 停止VAD
       function stopVAD() {
@@ -841,6 +958,8 @@
           }
         }
       }
+      // 全局变量热词检测
+      sleep = stopVAD;
 
       // 初始化VAD ___________________________
       await initVAD();
@@ -1116,16 +1235,23 @@
         }
       }
 
+      // 用于按顺序存储多个音频片段，确保它们能够按照添加的顺序依次播放
       let audioQueue = [];
+      // 播放状态标志：表示当前是否有音频正在播放
+      // 用于控制音频的播放逻辑，防止多个音频同时播放导致的重叠
       let isPlaying = false;
 
-      // To stop audio streaming
+
+      // 用于停止音频流处理(连续播放)的符号
       let isProcessing = false;
+
       const stopAudio = () => {
         console.log("Stop streaming audio.")
         isProcessing = false;
         audioQueue = [];
       };
+      // 全局变量热词检测
+      interruption = stopAudio;
 
       const handleTextChunk = async (text) => {
         const textBox = document.querySelector('.text-box p');
@@ -1168,6 +1294,8 @@
       const playNextAudio = async (model) => {
         if (audioQueue.length === 0) {
           isPlaying = false;
+          // 结束了没有再播放了
+          isProcessing = false;
           return;
         }
 
@@ -1188,7 +1316,7 @@
 
           setTimeout(() => {
             playNextAudio(model);
-          }, 100);
+          }, 50);
           // playNextAudio(model);
         });
 
