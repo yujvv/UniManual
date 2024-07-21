@@ -298,7 +298,8 @@
       const commands = {
         wake: ['hey assistant', 'hello assistant', 'wake up'],
         stop: ['stop listening', 'go to sleep', 'bye assistant'],
-        other: ['what time is it', 'Listen to me', 'wait']
+        interrupt: ['listen to me', 'wait', 'stop']
+        // other: ['what time is it', 'listen to me', 'wait']
       };
 
       let isAwake = false;
@@ -307,6 +308,7 @@
       function handleWakeUp() {
         isAwake = true;
         wakeUp()
+        AudioPlayer.play(2);
         console.log('Wake-up word detected! System is now awake.');
         console.log('Listening for commands...');
       }
@@ -314,34 +316,44 @@
       // Function to handle stop command
       function handleStop() {
         isAwake = false;
+        interruption()
         sleep()
+        AudioPlayer.play(3);
         console.log('Stop command received. System is now asleep.');
         console.log(`Say one of the wake words (${commands.wake.join(', ')}) to wake up the system.`);
       }
 
-      // Function to handle other commands
-      function handleOtherCommands(command) {
-        if (isAwake) {
-          console.log('Command received:', command);
-          // Here you can add your logic to handle various commands
-          switch (command) {
-            case 'what time is it':
-              console.log('The current time is ' + new Date().toLocaleTimeString());
-              break;
-            case 'Listen to me':
-              interruption()
-              // alwaysInterrupting = true;
-              console.log('Listen to me --- interruption = ture');
-              break;
-            case 'wait':
-              interruption()
-              console.log('Wait --- interruption = ture');
-              break;
-            default:
-              console.log('Command not recognized.');
-          }
-        }
+      // Function to handle interrupt command
+      function handleInterrupt() {
+        isAwake = false;
+        interruption()
+        AudioPlayer.play(1);
+        console.log('Interrupt command received. System is now interrupted.');
       }
+
+      // Function to handle other commands
+      // function handleOtherCommands(command) {
+      //   if (isAwake) {
+      //     console.log('Command received:', command);
+      //     // Here you can add your logic to handle various commands
+      //     switch (command) {
+      //       case 'what time is it':
+      //         console.log('The current time is ' + new Date().toLocaleTimeString());
+      //         break;
+      //       case 'listen to me':
+      //         interruption()
+      //         // alwaysInterrupting = true;
+      //         console.log('Listen to me --- interruption = ture');
+      //         break;
+      //       case 'wait':
+      //         interruption()
+      //         console.log('Wait --- interruption = ture');
+      //         break;
+      //       default:
+      //         console.log('Command not recognized.');
+      //     }
+      //   }
+      // }
 
       // Set up commands
       const annyangCommands = {};
@@ -351,7 +363,10 @@
       commands.stop.forEach(stop => {
         annyangCommands[stop] = handleStop;
       });
-      annyangCommands['*command'] = handleOtherCommands;
+      commands.interrupt.forEach(interrupt => {
+        annyangCommands[interrupt] = handleInterrupt;
+      });
+      // annyangCommands['*command'] = handleOtherCommands;
 
       annyang.addCommands(annyangCommands);
 
@@ -385,6 +400,8 @@
     } else {
       console.log("Speech recognition is not supported in this browser.");
     }
+
+
 
     $('input[name="eyes"]').click(function () {
       var radioValue = $("input[name='eyes']:checked").val();
@@ -463,6 +480,74 @@
     });
 
     const live2d = PIXI.live2d;
+
+
+    // 音频播放器模块
+    // AudioPlayer.play(1); // 播放音频1
+    // AudioPlayer.pause(); // 暂停当前音频
+    // AudioPlayer.stop(); // 停止并重置当前音频
+    // AudioPlayer.setVolume(0.5); // 设置音量为50%
+    const AudioPlayer = (function () {
+      let audioElement = null;
+
+      function initAudioElement() {
+        if (!audioElement) {
+          audioElement = new Audio();
+          audioElement.addEventListener('ended', () => {
+            console.log('音频播放结束');
+          });
+          audioElement.addEventListener('error', (e) => {
+            console.error('音频加载错误:', e);
+          });
+        }
+      }
+
+      function playAudio(number) {
+        initAudioElement();
+
+        const audioFiles = {
+          1: 'audio/interrupt.mp3',
+          2: 'audio/wakeup.mp3',
+          3: 'audio/sleep.mp3'
+        };
+
+        if (audioFiles[number]) {
+          audioElement.src = audioFiles[number];
+          audioElement.play().catch(e => console.error('播放失败:', e));
+        } else {
+          console.error('无效的音频编号');
+        }
+      }
+
+      function pauseAudio() {
+        if (audioElement) {
+          audioElement.pause();
+        }
+      }
+
+      function stopAudio() {
+        if (audioElement) {
+          audioElement.pause();
+          audioElement.currentTime = 0;
+        }
+      }
+
+      function setVolume(level) {
+        if (audioElement) {
+          audioElement.volume = Math.max(0, Math.min(1, level));
+        }
+      }
+
+      return {
+        play: playAudio,
+        pause: pauseAudio,
+        stop: stopAudio,
+        setVolume: setVolume
+      };
+    })();
+
+
+
 
     (async function main() {
       const app = new PIXI.Application({
